@@ -1,18 +1,26 @@
 package auth_service
 
 import (
+	"context"
 	"errors"
-	"gitlab.com/g6834/team17/auth_service/internal/model"
+	"github.com/dgrijalva/jwt-go"
+	"gitlab.com/g6834/team17/auth_service/internal/handler/api"
+	"gitlab.com/g6834/team17/auth_service/internal/service/user_service"
+	"log"
 	"time"
 )
 
 type AuthService struct {
 	SecretKey string
+	us        user_service.UserService
 }
 
-func New(secretKey string) *AuthService {
+var NotFoundUserErr = errors.New("No user found with this username and password")
+
+func New(secretKey string, us user_service.UserService) *AuthService {
 	return &AuthService{
 		secretKey,
+		us,
 	}
 }
 
@@ -22,21 +30,28 @@ var (
 	exp        = "exp"
 )
 
-func (s *AuthService) Authorize(uname, pass string) (string, error) {
-	if uname != validUser.Username && pass != validUser.Password {
-		return "", errors.New("Invalid login or password")
+func (as *AuthService) Authorize(ctx context.Context, uname, pass string) (string, error) {
+	user, err := as.us.GetByNameAndPass(ctx, uname, pass)
+	if err != nil {
+		log.Println(err)
+		return "", NotFoundUserErr
 	}
 
-	return s.createToken(&validUser)
+	token, err := createToken(user, as.SecretKey)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
-func (s *AuthService) createToken(user *model.User) (string, error) {
+func createToken(user *api.User, secretKey string) (string, error) {
 	atClaims := jwt.MapClaims{}
 	atClaims[authorized] = true
 	atClaims[userId] = user.ID
 	atClaims[exp] = time.Now().Add(time.Minute * 15).Unix()
 	at := jwt.NewWithClaims(jwt.SigningMethodRS256, atClaims)
-	token, err := at.SignedString([]byte(s.SecretKey))
+	token, err := at.SignedString([]byte(secretKey))
 	if err != nil {
 		return "", err
 	}
@@ -50,9 +65,6 @@ func (s *AuthService) createToken(user *model.User) (string, error) {
 //func (s *AuthService) Unathorize(token string) error {
 //
 //}
-
-var validUser = model.User{
-	ID:       1,
-	Username: "test",
-	Password: "123",
-}
+//func (s *AuthService) Refresh(accessToken, refreshToken string) error {
+//
+//}

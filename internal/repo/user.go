@@ -12,6 +12,7 @@ import (
 
 type UserRepo interface {
 	Get(ctx context.Context, id string) (*model.User, error)
+	GetByNameAndPass(ctx context.Context, uname, pass string) (*model.User, error)
 	Insert(ctx context.Context, user *model.User) error
 	Update(ctx context.Context, user *model.User) error
 }
@@ -42,10 +43,19 @@ func (r *repo) Get(ctx context.Context, id string) (*model.User, error) {
 	return &user, err
 }
 
+func (r *repo) GetByNameAndPass(ctx context.Context, uname, pass string) (*model.User, error) {
+	query := r.db.Collection(DB_COLLECTION).FindOne(ctx, bson.M{"username": uname, "password.go": pass})
+
+	var user model.User
+	err := query.Decode(&user)
+
+	return &user, err
+}
+
 func (r *repo) Insert(ctx context.Context, user *model.User) error {
 	dataReq := bson.M{
 		"username":      user.Username,
-		"password":      user.Password,
+		"password.go":   user.Password,
 		"email":         user.Email,
 		"first_name":    user.FirstName,
 		"last_name":     user.LastName,
@@ -63,11 +73,11 @@ func (r *repo) Insert(ctx context.Context, user *model.User) error {
 func (r *repo) Update(ctx context.Context, user *model.User) error {
 	dataReq := bson.M{
 		"$set": bson.M{
-			"username":   user.Username,
-			"password":   user.Password,
-			"email":      user.Email,
-			"first_name": user.FirstName,
-			"last_name":  user.LastName,
+			"username":    user.Username,
+			"password.go": user.Password,
+			"email":       user.Email,
+			"first_name":  user.FirstName,
+			"last_name":   user.LastName,
 		},
 	}
 

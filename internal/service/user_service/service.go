@@ -3,11 +3,10 @@ package user_service
 import (
 	"context"
 	"gitlab.com/g6834/team17/auth_service/internal/handler/api"
+	"gitlab.com/g6834/team17/auth_service/internal/helper"
 	"gitlab.com/g6834/team17/auth_service/internal/model"
 	"gitlab.com/g6834/team17/auth_service/internal/repo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"golang.org/x/crypto/bcrypt"
-	"log"
 )
 
 type UserService struct {
@@ -20,14 +19,33 @@ func New(repo repo.UserRepo) *UserService {
 	}
 }
 
-func (us *UserService) Create(user *api.User) (err error) {
-	err = us.repo.Insert(context.Background(), toDbUser(user))
+func (us *UserService) GetByNameAndPass(ctx context.Context, uname, pass string) (*api.User, error) {
+	user, err := us.repo.GetByNameAndPass(ctx, uname, pass)
+	if err != nil {
+		return nil, err
+	}
+	return toApiUser(user), nil
+}
+
+func (us *UserService) Create(ctx context.Context, user *api.User) (err error) {
+	err = us.repo.Insert(ctx, toDbUser(user))
 	return err
 }
 
-func (us *UserService) Update(user *api.User) (err error) {
-	err = us.repo.Insert(context.Background(), toDbUser(user))
+func (us *UserService) Update(ctx context.Context, user *api.User) (err error) {
+	err = us.repo.Insert(ctx, toDbUser(user))
 	return err
+}
+
+func toApiUser(user *model.User) *api.User {
+	return &api.User{
+		ID:        user.ID.String(),
+		Username:  user.Username,
+		Email:     user.Email,
+		Password:  user.Password,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+	}
 }
 
 func toDbUser(user *api.User) *model.User {
@@ -37,16 +55,8 @@ func toDbUser(user *api.User) *model.User {
 		ID:        id,
 		Username:  user.Username,
 		Email:     user.Email,
-		Password:  getHash([]byte(user.Password)),
+		Password:  helper.GetHash([]byte(user.Password)),
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 	}
-}
-
-func getHash(pwd []byte) string {
-	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
-	if err != nil {
-		log.Println(err)
-	}
-	return string(hash)
 }
