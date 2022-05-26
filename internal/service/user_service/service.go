@@ -2,61 +2,57 @@ package user_service
 
 import (
 	"context"
-	"gitlab.com/g6834/team17/auth_service/internal/handler/api"
 	"gitlab.com/g6834/team17/auth_service/internal/helper"
 	"gitlab.com/g6834/team17/auth_service/internal/model"
 	"gitlab.com/g6834/team17/auth_service/internal/repo"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type UserService struct {
+type UserService interface {
+	GetAll(ctx context.Context) ([]*model.User, error)
+	GetByName(ctx context.Context, uname string) (*model.User, error)
+	Create(ctx context.Context, user *model.User) (err error)
+	Update(ctx context.Context, user *model.User) (err error)
+	UpdatePassword(ctx context.Context, user *model.User) (err error)
+}
+
+type userService struct {
 	repo repo.UserRepo
 }
 
-func New(repo repo.UserRepo) *UserService {
-	return &UserService{
+func New(repo repo.UserRepo) UserService {
+	return &userService{
 		repo: repo,
 	}
 }
 
-func (us *UserService) GetByNameAndPass(ctx context.Context, uname, pass string) (*api.User, error) {
-	user, err := us.repo.GetByNameAndPass(ctx, uname, pass)
+func (us *userService) GetAll(ctx context.Context) ([]*model.User, error) {
+	users, err := us.repo.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return toApiUser(user), nil
+	return users, nil
 }
 
-func (us *UserService) Create(ctx context.Context, user *api.User) (err error) {
-	err = us.repo.Insert(ctx, toDbUser(user))
+func (us *userService) GetByName(ctx context.Context, uname string) (*model.User, error) {
+	user, err := us.repo.GetByName(ctx, uname)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (us *userService) Create(ctx context.Context, user *model.User) (err error) {
+	user.Password = helper.GetHash([]byte(user.Password))
+	err = us.repo.Insert(ctx, user)
 	return err
 }
 
-func (us *UserService) Update(ctx context.Context, user *api.User) (err error) {
-	err = us.repo.Insert(ctx, toDbUser(user))
+func (us *userService) Update(ctx context.Context, user *model.User) (err error) {
+	err = us.repo.Update(ctx, user)
 	return err
 }
 
-func toApiUser(user *model.User) *api.User {
-	return &api.User{
-		ID:        user.ID.String(),
-		Username:  user.Username,
-		Email:     user.Email,
-		Password:  user.Password,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-	}
-}
-
-func toDbUser(user *api.User) *model.User {
-	id, _ := primitive.ObjectIDFromHex(user.ID)
-
-	return &model.User{
-		ID:        id,
-		Username:  user.Username,
-		Email:     user.Email,
-		Password:  helper.GetHash([]byte(user.Password)),
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-	}
+func (us *userService) UpdatePassword(ctx context.Context, user *model.User) (err error) {
+	err = us.repo.Update(ctx, user)
+	return err
 }
