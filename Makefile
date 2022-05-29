@@ -66,3 +66,13 @@ deps-go:
 	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.5.0
 	go install github.com/envoyproxy/protoc-gen-validate@$(PGV_VERSION)
 	go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@latest
+
+.PHONY: build
+build: generate .build
+
+.PHONY: build-go
+build-go: generate-go .build
+
+.build:
+	go mod download && CGO_ENABLED=0  go build \
+		-o ./bin/auth$(shell go env GOEXE) ./cmd/auth/main.go
