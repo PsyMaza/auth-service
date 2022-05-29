@@ -70,9 +70,6 @@ deps-go:
 .PHONY: build
 build: generate .build
 
-.PHONY: build-go
-build-go: generate-go .build
-
 .build:
 	go mod download && CGO_ENABLED=0  go build \
-		-o ./bin/auth$(shell go env GOEXE) ./cmd/auth/main.go
+		-o ./bin/auth-server$(shell go env GOEXE) ./cmd/auth/main.go

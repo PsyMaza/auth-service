@@ -2,7 +2,7 @@
 
 ARG GITHUB_PATH=gitlab.com/g6834/team17/auth_service
 
-FROM golang:1.16-alpine AS builder
+FROM golang:1.18-alpine AS builder
 
 WORKDIR /home/${GITHUB_PATH}
 
@@ -10,7 +10,7 @@ RUN apk add --update make git protoc protobuf protobuf-dev curl
 COPY Makefile Makefile
 RUN make deps-go
 COPY . .
-RUN make build-go
+RUN make build
 
 # gRPC Server
 
