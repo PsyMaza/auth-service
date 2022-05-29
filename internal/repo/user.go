@@ -17,6 +17,8 @@ type UserRepo interface {
 	Insert(ctx context.Context, user *model.User) error
 	Update(ctx context.Context, user *model.User) error
 	UpdatePassword(ctx context.Context, user *model.User) error
+	SetToken(ctx context.Context, userID primitive.ObjectID, td *model.TokenDetails) error
+	TokenExist(ctx context.Context, token string, types TokenTypes) error
 }
 
 type repo struct {
@@ -103,9 +105,8 @@ func (r *repo) Update(ctx context.Context, user *model.User) error {
 		},
 	}
 
-	res := r.db.Collection(DB_COLLECTION).FindOneAndUpdate(ctx, bson.M{"_id": user.ID}, dataReq)
-
-	return res.Err()
+	_, err := r.db.Collection(DB_COLLECTION).UpdateOne(ctx, bson.M{"_id": user.ID}, dataReq)
+	return err
 }
 
 func (r *repo) UpdatePassword(ctx context.Context, user *model.User) error {
@@ -118,4 +119,43 @@ func (r *repo) UpdatePassword(ctx context.Context, user *model.User) error {
 	_, err := r.db.Collection(DB_COLLECTION).UpdateOne(ctx, bson.M{"_id": user.ID}, dataReq)
 
 	return err
+}
+
+func (r *repo) SetToken(ctx context.Context, userID primitive.ObjectID, td *model.TokenDetails) error {
+	dataReq := bson.M{
+		"$set": bson.M{
+			"token": bson.M{
+				"access_token":  td.AccessToken,
+				"refresh_token": td.RefreshToken,
+				"at_expires":    td.AtExpires,
+				"rt_expires":    td.RtExpires,
+			},
+		},
+	}
+
+	_, err := r.db.Collection(DB_COLLECTION).UpdateOne(ctx, bson.M{"_id": userID}, dataReq)
+	return err
+}
+
+type TokenTypes uint
+
+const (
+	Access TokenTypes = iota
+	Refresh
+)
+
+func (r *repo) TokenExist(ctx context.Context, token string, types TokenTypes) error {
+	var dataReq bson.M
+	switch types {
+	case Access:
+		dataReq = bson.M{
+			"token.access_token": token,
+		}
+	case Refresh:
+		dataReq = bson.M{
+			"token.refresh_token": token,
+		}
+	}
+	res := r.db.Collection(DB_COLLECTION).FindOne(ctx, dataReq)
+	return res.Err()
 }

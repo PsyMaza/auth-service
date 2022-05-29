@@ -9,7 +9,6 @@ import (
 
 type UserService interface {
 	GetAll(ctx context.Context) ([]*model.User, error)
-	GetByName(ctx context.Context, uname string) (*model.User, error)
 	Create(ctx context.Context, user *model.User) (err error)
 	Update(ctx context.Context, user *model.User) (err error)
 	UpdatePassword(ctx context.Context, user *model.User) (err error)
@@ -31,14 +30,6 @@ func (us *userService) GetAll(ctx context.Context) ([]*model.User, error) {
 		return nil, err
 	}
 	return users, nil
-}
-
-func (us *userService) GetByName(ctx context.Context, uname string) (*model.User, error) {
-	user, err := us.repo.GetByName(ctx, uname)
-	if err != nil {
-		return nil, err
-	}
-	return user, nil
 }
 
 func (us *userService) Create(ctx context.Context, user *model.User) (err error) {

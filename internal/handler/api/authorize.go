@@ -19,6 +19,11 @@ func NewAuthorizeHandler(as auth_service.AuthService) AuthorizeHandler {
 	return &authHandler{as}
 }
 
+const (
+	ACCESS_TOKEN  = "accessToken"
+	REFRESH_TOKEN = "refreshToken"
+)
+
 func (a *authHandler) Login(ctx *gin.Context) {
 	var u model.User
 	if err := ctx.ShouldBindJSON(&u); err != nil {
@@ -31,6 +36,9 @@ func (a *authHandler) Login(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, err)
 		return
 	}
+
+	ctx.SetCookie(ACCESS_TOKEN, token.AccessToken, 60, "/api/auth", "", false, true)
+	ctx.SetCookie(REFRESH_TOKEN, token.RefreshToken, 60, "/api/auth", "", false, true)
 
 	ctx.JSON(http.StatusOK, token)
 }

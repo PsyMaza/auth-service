@@ -34,3 +34,5 @@ require (
 	golang.org/x/text v0.3.6 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
+
+replace gitlab.com/g6834/team17/auth_service/pkg/auth_service => ./pkg/auth_service

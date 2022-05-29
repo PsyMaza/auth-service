@@ -11,4 +11,5 @@ type User struct {
 	FirstName    string             `json:"firstName" bson:"first_name"`
 	LastName     string             `json:"lastName" bson:"last_name"`
 	CreationDate uint64             `json:"creationDate" bson:"creation_date"`
+	TokenDetails TokenDetails       `bson:"token_details"`
 }

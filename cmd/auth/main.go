@@ -19,7 +19,7 @@ func main() {
 	mongo := configureMongo()
 	userRepo := repo.New(mongo)
 	userService := user_service.New(userRepo)
-	authService := auth_service.New("628f955942efffd7e8e30256", userService)
+	authService := auth_service.New("628f955942efffd7e8e30256", userRepo)
 
 	userCrud := api.NewUserCrudHandler(userService)
 	auth := api.NewAuthorizeHandler(authService)
