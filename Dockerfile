@@ -19,14 +19,14 @@ LABEL org.opencontainers.image.source https://${GITHUB_PATH}
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
-COPY --from=builder /home/${GITHUB_PATH}/bin/grpc-server .
+COPY --from=builder /home/${GITHUB_PATH}/bin/auth-server .
 COPY --from=builder /home/${GITHUB_PATH}/config.yml .
-COPY --from=builder /home/${GITHUB_PATH}/migrations/ ./migrations
+#COPY --from=builder /home/${GITHUB_PATH}/migrations/ ./migrations
 
-RUN chown root:root grpc-server
+RUN chown root:root auth-server
 
 EXPOSE 50051
 EXPOSE 8080
 EXPOSE 8083
 
-CMD ["./grpc-server"]
+CMD ["./auth-server"]
