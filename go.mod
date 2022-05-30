@@ -1,4 +1,4 @@
-module gitlab.com/g6834/team17/auth_service
+module gitlab.com/g6834/team17/auth-service
 
 go 1.18
 

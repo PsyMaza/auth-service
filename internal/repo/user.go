@@ -3,7 +3,7 @@ package repo
 import (
 	"context"
 	"errors"
-	"gitlab.com/g6834/team17/auth_service/internal/model"
+	"gitlab.com/g6834/team17/auth-service/internal/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

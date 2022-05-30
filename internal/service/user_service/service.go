@@ -2,9 +2,9 @@ package user_service
 
 import (
 	"context"
-	"gitlab.com/g6834/team17/auth_service/internal/handler/api"
-	"gitlab.com/g6834/team17/auth_service/internal/model"
-	"gitlab.com/g6834/team17/auth_service/internal/repo"
+	"gitlab.com/g6834/team17/auth-service/internal/handler/api"
+	"gitlab.com/g6834/team17/auth-service/internal/model"
+	"gitlab.com/g6834/team17/auth-service/internal/repo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 	"log"

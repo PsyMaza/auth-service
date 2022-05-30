@@ -2,7 +2,6 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"gitlab.com/g6834/team17/auth_service/internal/service/auth_service"
 	"net/http"
 )
 
@@ -13,7 +12,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	as := auth_service.New("fdsafasdfasd")
+	as := auth - service.New("fdsafasdfasd")
 	token, err := as.Authorize(u.Username, u.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, err)
