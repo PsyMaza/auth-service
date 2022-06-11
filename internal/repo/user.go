@@ -10,13 +10,7 @@ import (
 	"time"
 )
 
-type UserRepo interface {
-	Get(ctx context.Context, id string) (*model.User, error)
-	Insert(ctx context.Context, user *model.User) error
-	Update(ctx context.Context, user *model.User) error
-}
-
-type repo struct {
+type DatabaseRepo struct {
 	db *mongo.Database
 }
 
@@ -26,13 +20,13 @@ const (
 	DB_COLLECTION = "users"
 )
 
-func New(db *mongo.Database) UserRepo {
-	return &repo{
+func NewDatabaseRepo(db *mongo.Database) *DatabaseRepo {
+	return &DatabaseRepo{
 		db: db,
 	}
 }
 
-func (r *repo) Get(ctx context.Context, id string) (*model.User, error) {
+func (r *DatabaseRepo) Get(ctx context.Context, id string) (*model.User, error) {
 	docId, err := primitive.ObjectIDFromHex(id)
 	query := r.db.Collection(DB_COLLECTION).FindOne(ctx, bson.M{"_id": docId})
 
@@ -42,7 +36,7 @@ func (r *repo) Get(ctx context.Context, id string) (*model.User, error) {
 	return &user, err
 }
 
-func (r *repo) Insert(ctx context.Context, user *model.User) error {
+func (r *DatabaseRepo) Insert(ctx context.Context, user *model.User) error {
 	dataReq := bson.M{
 		"username":      user.Username,
 		"password":      user.Password,
@@ -60,7 +54,7 @@ func (r *repo) Insert(ctx context.Context, user *model.User) error {
 	return err
 }
 
-func (r *repo) Update(ctx context.Context, user *model.User) error {
+func (r *DatabaseRepo) Update(ctx context.Context, user *model.User) error {
 	dataReq := bson.M{
 		"$set": bson.M{
 			"username":   user.Username,

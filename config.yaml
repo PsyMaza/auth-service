@@ -1,5 +1,5 @@
-project:
-    name: auth-service
+app:
+    name: app-service
     debug: true
     environment: development
     version: 0.1
@@ -21,7 +21,7 @@ metrics:
     path: /metrics
 
 jaeger:
-    service: "team17-auth-service"
+    service: "team17-app-service"
     host: "0.0.0.0"
     port: ":16686"
 
@@ -41,3 +41,4 @@ database:
     sslmode: disable
     migrations: migrations
     driver: mongo-driver
+    timeout: 5 # Seconds

@@ -1,7 +1,5 @@
 package api
 
-import (
-)
 //
 //func Login(c *gin.Context) {
 //	var u User
@@ -10,7 +8,7 @@ import (
 //		return
 //	}
 //
-//	as := auth - service.New("fdsafasdfasd")
+//	as := app - service.New("fdsafasdfasd")
 //	token, err := as.Authorize(u.Username, u.Password)
 //	if err != nil {
 //		c.JSON(http.StatusUnauthorized, err)

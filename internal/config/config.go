@@ -26,17 +26,7 @@ type Database struct {
 	Password   string `yaml:"password"`
 	Migrations string `yaml:"migrations"`
 	Name       string `yaml:"name"`
-	SslMode    string `yaml:"sslmode"`
-	Driver     string `yaml:"driver"`
-}
-
-// Grpc - contains parameter address grpc.
-type Grpc struct {
-	Port              int    `yaml:"port"`
-	MaxConnectionIdle int64  `yaml:"maxConnectionIdle"`
-	Timeout           int64  `yaml:"timeout"`
-	MaxConnectionAge  int64  `yaml:"maxConnectionAge"`
-	Host              string `yaml:"host"`
+	Timeout    int    `yaml:"timeout"`
 }
 
 // Rest - contains parameter rest json connection.
@@ -45,8 +35,8 @@ type Rest struct {
 	Host string `yaml:"host"`
 }
 
-// Project - contains all parameters project information.
-type Project struct {
+// App - contains all parameters project information.
+type App struct {
 	Debug       bool   `yaml:"debug"`
 	Name        string `yaml:"name"`
 	Environment string `yaml:"environment"`
@@ -78,8 +68,7 @@ type Status struct {
 
 // Config - contains all configuration parameters in config package.
 type Config struct {
-	Project  Project  `yaml:"project"`
-	Grpc     Grpc     `yaml:"grpc"`
+	App      App      `yaml:"app"`
 	Rest     Rest     `yaml:"rest"`
 	Database Database `yaml:"database"`
 	Metrics  Metrics  `yaml:"metrics"`
