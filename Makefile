@@ -23,7 +23,7 @@ run:
 
 .PHONY: lint
 lint:
-	golangci-lint run ./...
+	golangci-lint run --timeout 5m --config .golangci.yaml -v ./...
 
 .PHONY: test
 test:

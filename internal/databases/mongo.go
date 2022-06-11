@@ -35,7 +35,7 @@ func Connect(c MongoConfig) (*mongo.Database, error) {
 		return nil, err
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), time.Duration(c.Timeout)*time.Second)
+	ctx, _ := context.WithTimeout(context.Background(), time.Duration(c.Timeout)*time.Second) //nolint:govet
 	err = client.Connect(ctx)
 	if err != nil {
 		return nil, err

@@ -121,7 +121,10 @@ func main() {
 	})
 
 	listenAddress := fmt.Sprintf("%v:%v", cfg.Rest.Host, cfg.Rest.Port)
-	http.ListenAndServe(listenAddress, router)
+	err := http.ListenAndServe(listenAddress, router)
+	if err != nil {
+		return
+	}
 }
 
 func initOtel(cfg *config.Config, logger zerolog.Logger) {
