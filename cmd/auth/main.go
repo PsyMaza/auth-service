@@ -15,7 +15,12 @@ func main() {
 		log.Fatal().Err(err).Msg("Failed init configuration")
 	}
 	cfg := config.New()
-	log.Print(cfg)
+
+	log.Info().
+		Str("version", cfg.Project.Version).
+		Bool("debug", cfg.Project.Debug).
+		Str("environment", cfg.Project.Environment).
+		Msgf("Starting service: %s", cfg.Project.Name)
 	//router.GET("/", func(ctx *gin.Context) {
 	//	ctx.JSON(200, gin.H{
 	//		"hello": "Hello world !!",

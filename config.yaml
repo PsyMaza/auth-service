@@ -2,6 +2,7 @@ project:
     name: auth-service
     debug: true
     environment: development
+    version: 0.1
 
 grpc:
     host: 0.0.0.0
@@ -36,7 +37,7 @@ database:
     port: 27017
     user:
     password:
-    name: mts 
+    name: mts
     sslmode: disable
     migrations: migrations
     driver: mongo-driver
