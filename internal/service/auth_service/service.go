@@ -5,6 +5,9 @@ type AuthService struct {
 }
 
 func New(secretKey string) *AuthService {
+	t := AuthService{
+		SecretKey: 5,
+	}
 	return &AuthService{
 		secretKey,
 	}

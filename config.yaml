@@ -1,0 +1,42 @@
+project:
+    name: auth-service
+    debug: true
+    environment: development
+
+grpc:
+    host: 0.0.0.0
+    port: 8082
+    maxConnectionIdle: 5 # Minutes
+    timeout: 15 # Seconds
+    maxConnectionAge: 5 # Minutes
+
+rest:
+    host: 0.0.0.0
+    port: 3000
+
+metrics:
+    host: 0.0.0.0
+    port: 9100
+    path: /metrics
+
+jaeger:
+    service: "team17-auth-service"
+    host: "0.0.0.0"
+    port: ":16686"
+
+status:
+    host: 0.0.0.0
+    port: 8000
+    livenessPath: /live
+    readinessPath: /ready
+    versionPath: /version
+
+database:
+    host: 0.0.0.0
+    port: 27017
+    user:
+    password:
+    name: mts 
+    sslmode: disable
+    migrations: migrations
+    driver: mongo-driver
