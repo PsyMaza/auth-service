@@ -19,7 +19,8 @@ import (
 	"gitlab.com/g6834/team17/auth-service/internal/databases"
 	"gitlab.com/g6834/team17/auth-service/internal/interfaces"
 	"gitlab.com/g6834/team17/auth-service/internal/repo"
-	auth "gitlab.com/g6834/team17/auth-service/internal/services/auth_service"
+	"gitlab.com/g6834/team17/auth-service/internal/services/auth_service"
+	"gitlab.com/g6834/team17/auth-service/internal/services/user_service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
@@ -87,13 +88,18 @@ func main() {
 	presenters := presenters.NewPresenters(logger)
 
 	// Migration
-	//*migration = false // todo: delete when will be created mongodb in k8s
+	*migration = false // todo: delete when will be created mongodb in k8s
 	if *migration {
 		runMigrations(mongo, &cfg)
 	}
 
 	// Services
-	authService := auth.New(userRepo)
+	authService := auth_service.New(&auth_service.JwtSettings{
+		SecretKey:  cfg.Jwt.SecretKey,
+		AtLifeTime: cfg.Jwt.AtLifeTime,
+		RtLifeTime: cfg.Jwt.RtLifeTime,
+	}, userRepo)
+	userService := user_service.New(userRepo)
 
 	router := chi.NewRouter()
 	router.Route("/v1", func(v1 chi.Router) {
@@ -105,6 +111,7 @@ func main() {
 		v1.Use(cors.Default().Handler)
 
 		v1.Mount("/auth", handlers.AuthRouter(logger, presenters, authService))
+		v1.Mount("/user", handlers.UserRouter(logger, presenters, userService))
 	})
 
 	listenAddress := fmt.Sprintf("%v:%v", cfg.Rest.Host, cfg.Rest.Port)

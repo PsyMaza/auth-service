@@ -43,6 +43,12 @@ type App struct {
 	Version     string `yaml:"version"`
 }
 
+type Jwt struct {
+	SecretKey  string `yaml:"secretKey"`
+	AtLifeTime int    `yaml:"atLifeTime"`
+	RtLifeTime int    `yaml:"rtLifeTime"`
+}
+
 // Metrics - contains all parameters metrics information.
 type Metrics struct {
 	Port int    `yaml:"port"`
@@ -69,6 +75,7 @@ type Status struct {
 // Config - contains all configuration parameters in config package.
 type Config struct {
 	App      App      `yaml:"app"`
+	Jwt      Jwt      `yaml:"jwt"`
 	Rest     Rest     `yaml:"rest"`
 	Database Database `yaml:"database"`
 	Metrics  Metrics  `yaml:"metrics"`

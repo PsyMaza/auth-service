@@ -2,51 +2,41 @@ package user_service
 
 import (
 	"context"
-	"gitlab.com/g6834/team17/auth-service/internal/api/handlers"
+	"gitlab.com/g6834/team17/auth-service/internal/interfaces"
 	"gitlab.com/g6834/team17/auth-service/internal/models"
-	"gitlab.com/g6834/team17/auth-service/internal/repo"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"golang.org/x/crypto/bcrypt"
-	"log"
+	"gitlab.com/g6834/team17/auth-service/internal/utils"
 )
 
-type UserService struct {
-	repo repo.UserRepo
+type userService struct {
+	repo interfaces.UserRepo
 }
 
-func New(repo repo.UserRepo) *UserService {
-	return &UserService{
+func New(repo interfaces.UserRepo) *userService {
+	return &userService{
 		repo: repo,
 	}
 }
 
-func (us *UserService) Create(user *handlers.User) (err error) {
-	err = us.repo.Insert(context.Background(), toDbUser(user))
-	return err
-}
-
-func (us *UserService) Update(user *handlers.User) (err error) {
-	err = us.repo.Insert(context.Background(), toDbUser(user))
-	return err
-}
-
-func toDbUser(user *handlers.User) *models.User {
-	id, _ := primitive.ObjectIDFromHex(user.ID)
-
-	return &models.User{
-		ID:        id,
-		Username:  user.Username,
-		Email:     user.Email,
-		Password:  getHash([]byte(user.Password)),
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-	}
-}
-
-func getHash(pwd []byte) string {
-	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
+func (us *userService) GetAll(ctx context.Context) ([]*models.User, error) {
+	users, err := us.repo.GetAll(ctx)
 	if err != nil {
-		log.Println(err)
+		return nil, err
 	}
-	return string(hash)
+	return users, nil
+}
+
+func (us *userService) Create(ctx context.Context, user *models.User) (err error) {
+	user.Password = utils.GetHash([]byte(user.Password))
+	err = us.repo.Insert(ctx, user)
+	return err
+}
+
+func (us *userService) Update(ctx context.Context, user *models.User) (err error) {
+	err = us.repo.Update(ctx, user)
+	return err
+}
+
+func (us *userService) UpdatePassword(ctx context.Context, user *models.User) (err error) {
+	err = us.repo.Update(ctx, user)
+	return err
 }

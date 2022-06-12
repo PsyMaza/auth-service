@@ -11,6 +11,11 @@ import (
 	"net/http"
 )
 
+const (
+	ACCESS_TOKEN  = "access_token"
+	REFRESH_TOKEN = "refresh_token"
+)
+
 type authHandlers struct {
 	logger      zerolog.Logger
 	presenters  interfaces.Presenters
@@ -52,11 +57,30 @@ func (handlers *authHandlers) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	todo, err := handlers.authService.Authorize(ctx, input.Username, input.Password)
+	td, err := handlers.authService.Authorize(ctx, input.Username, input.Password)
 	if err != nil {
 		handlers.presenters.Error(w, r, err)
 		return
 	}
 
-	handlers.presenters.JSON(w, r, todo)
+	atCookie := http.Cookie{
+		Name:    ACCESS_TOKEN,
+		Value:   td.AccessToken,
+		Path:    "/",
+		Expires: td.AtExpires,
+		Secure:  false,
+	}
+	rtCookie := http.Cookie{
+		Name:     REFRESH_TOKEN,
+		Value:    td.RefreshToken,
+		Path:     "/",
+		Expires:  td.RtExpires,
+		Secure:   true,
+		HttpOnly: true,
+	}
+
+	http.SetCookie(w, &rtCookie)
+	http.SetCookie(w, &atCookie)
+
+	handlers.presenters.JSON(w, r, td)
 }
