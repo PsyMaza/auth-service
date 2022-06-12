@@ -3,7 +3,7 @@ package repo
 import (
 	"context"
 	"errors"
-	"gitlab.com/g6834/team17/auth-service/internal/model"
+	"gitlab.com/g6834/team17/auth-service/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -26,17 +26,17 @@ func NewDatabaseRepo(db *mongo.Database) *DatabaseRepo {
 	}
 }
 
-func (r *DatabaseRepo) Get(ctx context.Context, id string) (*model.User, error) {
+func (r *DatabaseRepo) Get(ctx context.Context, id string) (*models.User, error) {
 	docId, err := primitive.ObjectIDFromHex(id)
 	query := r.db.Collection(DB_COLLECTION).FindOne(ctx, bson.M{"_id": docId})
 
-	var user model.User
+	var user models.User
 	err = query.Decode(&user)
 
 	return &user, err
 }
 
-func (r *DatabaseRepo) Insert(ctx context.Context, user *model.User) error {
+func (r *DatabaseRepo) Insert(ctx context.Context, user *models.User) error {
 	dataReq := bson.M{
 		"username":      user.Username,
 		"password":      user.Password,
@@ -54,7 +54,7 @@ func (r *DatabaseRepo) Insert(ctx context.Context, user *model.User) error {
 	return err
 }
 
-func (r *DatabaseRepo) Update(ctx context.Context, user *model.User) error {
+func (r *DatabaseRepo) Update(ctx context.Context, user *models.User) error {
 	dataReq := bson.M{
 		"$set": bson.M{
 			"username":   user.Username,

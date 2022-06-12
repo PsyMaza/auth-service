@@ -17,7 +17,7 @@ WORKDIR /root/
 
 COPY --from=builder /app/${GITHUB_PATH}/bin/auth-service .
 
-RUN chown root:root app-service
+RUN chown root:root app-services
 
 EXPOSE 3000
 

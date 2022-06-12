@@ -9,7 +9,7 @@ import (
 
 var cfg *Config
 
-// New returns service config
+// New returns services config
 func New() Config {
 	if cfg != nil {
 		return *cfg
@@ -18,7 +18,7 @@ func New() Config {
 	return Config{}
 }
 
-// Database - contains all parameters database connection.
+// Database - contains all parameters databases connection.
 type Database struct {
 	Host       string `yaml:"host"`
 	Port       string `yaml:"port"`
@@ -57,7 +57,7 @@ type Jaeger struct {
 	Port    string `yaml:"port"`
 }
 
-// Status config for service.
+// Status config for services.
 type Status struct {
 	Port          int    `yaml:"port"`
 	Host          string `yaml:"host"`
