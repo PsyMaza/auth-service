@@ -35,6 +35,10 @@ func ErrorBadRequest(err error) StatusError {
 	return newError(err, http.StatusBadRequest)
 }
 
+func ErrorForbidden(err error) StatusError {
+	return newError(err, http.StatusForbidden)
+}
+
 func ErrorNotFound(err error) StatusError {
 	return newError(err, http.StatusNotFound)
 }

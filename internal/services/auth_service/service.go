@@ -90,3 +90,17 @@ func createToken(user *models.User, settings *JwtSettings) (td *models.TokenDeta
 
 	return
 }
+
+func (as *authService) VerifyToken(ctx context.Context, tokenString string) (bool, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(as.jwtSettings.SecretKey), nil
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return token.Valid, nil
+}

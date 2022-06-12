@@ -9,6 +9,7 @@ import (
 	"gitlab.com/g6834/team17/auth-service/internal/models"
 	"gitlab.com/g6834/team17/auth-service/internal/utils"
 	"net/http"
+	"time"
 )
 
 const (
@@ -35,6 +36,8 @@ func AuthRouter(logger zerolog.Logger, presenter interfaces.Presenters, authServ
 
 	r := chi.NewRouter()
 	r.Post("/login", handlers.login)
+	r.Post("/logout", handlers.logout)
+	r.Post("/validate", handlers.validate)
 
 	return r
 }
@@ -46,7 +49,7 @@ func (handlers *authHandlers) login(w http.ResponseWriter, r *http.Request) {
 	var input requests.Login
 	err := utils.ReadJson(r, &input)
 	if err != nil {
-		handlers.presenters.Error(w, r, models.ErrorBadRequest(err))
+		handlers.presenters.Error(w, r, models.ErrorInternal(err))
 		return
 	}
 
@@ -59,7 +62,7 @@ func (handlers *authHandlers) login(w http.ResponseWriter, r *http.Request) {
 
 	td, err := handlers.authService.Authorize(ctx, input.Username, input.Password)
 	if err != nil {
-		handlers.presenters.Error(w, r, err)
+		handlers.presenters.Error(w, r, models.ErrorForbidden(err))
 		return
 	}
 
@@ -68,19 +71,69 @@ func (handlers *authHandlers) login(w http.ResponseWriter, r *http.Request) {
 		Value:   td.AccessToken,
 		Path:    "/",
 		Expires: td.AtExpires,
-		Secure:  false,
 	}
 	rtCookie := http.Cookie{
 		Name:     REFRESH_TOKEN,
 		Value:    td.RefreshToken,
 		Path:     "/",
 		Expires:  td.RtExpires,
+		HttpOnly: true,
+	}
+
+	http.SetCookie(w, &atCookie)
+	http.SetCookie(w, &rtCookie)
+
+	handlers.presenters.JSON(w, r, td)
+}
+
+func (handlers *authHandlers) logout(w http.ResponseWriter, r *http.Request) {
+	_, span := utils.StartSpan(r.Context())
+	defer span.End()
+
+	rtCookie := http.Cookie{
+		Name:     REFRESH_TOKEN,
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
 		Secure:   true,
 		HttpOnly: true,
 	}
 
-	http.SetCookie(w, &rtCookie)
-	http.SetCookie(w, &atCookie)
+	atCookie := http.Cookie{
+		Name:    ACCESS_TOKEN,
+		Value:   "",
+		Path:    "/",
+		Expires: time.Unix(0, 0),
+	}
 
-	handlers.presenters.JSON(w, r, td)
+	http.SetCookie(w, &atCookie)
+	http.SetCookie(w, &rtCookie)
+}
+
+func (handlers *authHandlers) validate(w http.ResponseWriter, r *http.Request) {
+	ctx, span := utils.StartSpan(r.Context())
+	defer span.End()
+
+	at, err := r.Cookie(ACCESS_TOKEN)
+	if err != nil {
+		handlers.presenters.Error(w, r, models.ErrorForbidden(err))
+		return
+	}
+
+	rt, err := r.Cookie(REFRESH_TOKEN)
+	if err != nil {
+		handlers.presenters.Error(w, r, models.ErrorForbidden(err))
+		return
+	}
+
+	ok, err := handlers.authService.VerifyToken(ctx, at.Value)
+	if !ok || err != nil {
+		handlers.presenters.Error(w, r, models.ErrorForbidden(err))
+		return
+	}
+	ok, err = handlers.authService.VerifyToken(ctx, rt.Value)
+	if !ok || err != nil {
+		handlers.presenters.Error(w, r, models.ErrorForbidden(err))
+		return
+	}
 }

@@ -1,6 +1,7 @@
 package presenters
 
 import (
+	"fmt"
 	"gitlab.com/g6834/team17/auth-service/internal/api/middlewares"
 	"gitlab.com/g6834/team17/auth-service/internal/models"
 	"go.opentelemetry.io/otel/trace"
@@ -20,7 +21,7 @@ func (p *presenters) Error(w http.ResponseWriter, r *http.Request, err error) {
 			Str("trace.id", span.SpanContext().TraceID().String()).
 			Msg("error.go")
 
-		http.Error(w, http.StatusText(e.Code), e.Code)
+		http.Error(w, fmt.Sprintf("{\"error\": \"%s\"}", err), e.Code)
 		return
 	default:
 		p.logger.Error().
@@ -29,7 +30,7 @@ func (p *presenters) Error(w http.ResponseWriter, r *http.Request, err error) {
 			Str("trace.id", span.SpanContext().TraceID().String()).
 			Msg("unhandled error.go")
 
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("{\"error\": \"%s\"}", err), http.StatusInternalServerError)
 		return
 	}
 }

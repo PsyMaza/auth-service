@@ -102,7 +102,7 @@ func main() {
 	userService := user_service.New(userRepo)
 
 	router := chi.NewRouter()
-	router.Route("/v1", func(v1 chi.Router) {
+	router.Route("/", func(v1 chi.Router) {
 		v1.Use(middleware.RealIP)
 		v1.Use(middlewares.RequestID)
 		v1.Use(middlewares.Tracer)
@@ -110,8 +110,8 @@ func main() {
 		v1.Use(middlewares.Recover(logger))
 		v1.Use(cors.Default().Handler)
 
-		v1.Mount("/auth", handlers.AuthRouter(logger, presenters, authService))
-		v1.Mount("/user", handlers.UserRouter(logger, presenters, userService))
+		v1.Mount("/auth/v1", handlers.AuthRouter(logger, presenters, authService))
+		v1.Mount("/user/v1", handlers.UserRouter(logger, presenters, userService))
 	})
 
 	listenAddress := fmt.Sprintf("%v:%v", cfg.Rest.Host, cfg.Rest.Port)

@@ -3,8 +3,8 @@ package models
 import "time"
 
 type TokenDetails struct {
-	AccessToken  string
-	RefreshToken string
-	AtExpires    time.Time
-	RtExpires    time.Time
+	AccessToken  string    `json:"accessToken"`
+	RefreshToken string    `json:"refreshToken"`
+	AtExpires    time.Time `json:"-"`
+	RtExpires    time.Time `json:"-"`
 }
