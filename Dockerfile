@@ -10,14 +10,17 @@ COPY Makefile Makefile
 COPY . .
 RUN make build
 
-# Mail server
+# Auth server
 FROM alpine:latest as server
 LABEL org.opencontainers.image.source https://${GITHUB_PATH}
 WORKDIR /root/
 
 COPY --from=builder /app/${GITHUB_PATH}/bin/auth-service .
+COPY --from=builder /app/${GITHUB_PATH}/config.yaml .
+COPY --from=builder /app/${GITHUB_PATH}/users.yaml .
+COPY --from=builder /app/${GITHUB_PATH}/migrations/ ./migrations
 
-RUN chown root:root app-services
+RUN chown root:root auth-service
 
 EXPOSE 3000
 
