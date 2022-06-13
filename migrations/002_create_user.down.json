@@ -1,0 +1,15 @@
+[
+	{
+		"delete": "users",
+		"deletes": [
+			{
+				"q": {
+					"username": "user123"
+				},
+				"limit": 1
+			}
+		],
+		"bypassDocumentValidation": true,
+		"comment": "Delete default users"
+	}
+]

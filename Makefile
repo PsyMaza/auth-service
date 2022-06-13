@@ -19,7 +19,7 @@ endif
 
 .PHONY: run
 run:
-	go run cmd/auth/main.go
+	go run cmd/app/main.go
 
 .PHONY: lint
 lint:
@@ -37,4 +37,4 @@ build: .build
 
 .build:
 	go mod download && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-		-v -o ./bin/auth-service$(shell go env GOEXE) ./cmd/auth/main.go
+		-v -o ./bin/auth-service$(shell go env GOEXE) ./cmd/app/main.go
