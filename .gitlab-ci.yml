@@ -1,2 +1,20 @@
 include:
     remote: 'https://gitlab.com/mts-teta-public/devops-tools/-/raw/master/.gitlab-ci-main.yml'
+
+linter:
+  stage: build
+  image: golangci/golangci-lint
+  allow_failure: true
+  script:
+    - make lint
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+
+test:
+  stage: build
+  image: golangci/golangci-lint
+  allow_failure: true
+  script:
+    - make test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
