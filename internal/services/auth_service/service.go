@@ -8,6 +8,7 @@ import (
 	"gitlab.com/g6834/team17/auth-service/internal/interfaces"
 	"gitlab.com/g6834/team17/auth-service/internal/models"
 	"gitlab.com/g6834/team17/auth-service/internal/utils"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 	"time"
 )
@@ -57,7 +58,6 @@ func (as *authService) Authorize(ctx context.Context, uname, pass string) (*mode
 	}
 
 	return token, nil
-
 }
 
 func createToken(user *models.User, settings *JwtSettings) (td *models.TokenDetails, err error) {
@@ -71,6 +71,7 @@ func createToken(user *models.User, settings *JwtSettings) (td *models.TokenDeta
 	atClaims[userId] = user.ID
 	atClaims[username] = user.Username
 	atClaims[firstName] = user.FirstName
+	atClaims[email] = user.Email
 	atClaims[lastName] = user.LastName
 	atClaims[expired] = time.Now().Add(time.Minute * 15).Unix()
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
@@ -103,4 +104,26 @@ func (as *authService) VerifyToken(ctx context.Context, tokenString string) (boo
 	}
 
 	return token.Valid, nil
+}
+func (as *authService) ParseToken(ctx context.Context, tokenString string) (*models.User, bool, error) {
+	claims := jwt.MapClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(as.jwtSettings.SecretKey), nil
+	})
+	if err != nil || !token.Valid {
+		return nil, false, err
+	}
+
+	user := &models.User{
+		ID:        primitive.ObjectID{},
+		Username:  fmt.Sprintf("%v", claims[username]),
+		Email:     fmt.Sprintf("%v", claims[email]),
+		FirstName: fmt.Sprintf("%v", claims[firstName]),
+		LastName:  fmt.Sprintf("%v", claims[lastName]),
+	}
+
+	return user, true, nil
 }

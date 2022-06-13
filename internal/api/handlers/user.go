@@ -5,6 +5,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog"
 	"gitlab.com/g6834/team17/auth-service/internal/api/requests"
+	"gitlab.com/g6834/team17/auth-service/internal/constants"
 	"gitlab.com/g6834/team17/auth-service/internal/interfaces"
 	"gitlab.com/g6834/team17/auth-service/internal/models"
 	"gitlab.com/g6834/team17/auth-service/internal/utils"
@@ -29,6 +30,7 @@ func UserRouter(logger zerolog.Logger, presenter interfaces.Presenters, userServ
 	handlers := newUserHandlers(logger, presenter, userService)
 
 	r := chi.NewRouter()
+	r.Get("/i", handlers.get)
 	r.Post("/create", handlers.create)
 
 	return r
@@ -63,4 +65,13 @@ func (handlers *userHandlers) create(w http.ResponseWriter, r *http.Request) {
 		handlers.presenters.Error(w, r, err)
 		return
 	}
+}
+
+func (handlers *userHandlers) get(w http.ResponseWriter, r *http.Request) {
+	ctx, span := utils.StartSpan(r.Context())
+	defer span.End()
+
+	user := ctx.Value(constants.CTX_USER).(*models.User)
+
+	handlers.presenters.JSON(w, r, user)
 }

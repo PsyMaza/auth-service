@@ -18,7 +18,7 @@ import (
 	"gitlab.com/g6834/team17/auth-service/internal/config"
 	"gitlab.com/g6834/team17/auth-service/internal/databases"
 	"gitlab.com/g6834/team17/auth-service/internal/interfaces"
-	"gitlab.com/g6834/team17/auth-service/internal/repo"
+	"gitlab.com/g6834/team17/auth-service/internal/repositories"
 	"gitlab.com/g6834/team17/auth-service/internal/services/auth_service"
 	"gitlab.com/g6834/team17/auth-service/internal/services/user_service"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -79,7 +79,7 @@ func main() {
 
 	//*useDatabase = false // todo: delete when will be created mongodb in k8s
 	if *useDatabase {
-		userRepo = repo.NewDatabaseRepo(mongo)
+		userRepo = repositories.NewDatabaseRepo(mongo)
 	} else {
 		userRepo = nil
 	}
@@ -102,16 +102,18 @@ func main() {
 	userService := user_service.New(userRepo)
 
 	router := chi.NewRouter()
-	router.Route("/", func(v1 chi.Router) {
-		v1.Use(middleware.RealIP)
-		v1.Use(middlewares.RequestID)
-		v1.Use(middlewares.Tracer)
-		v1.Use(middlewares.Logger(logger))
-		v1.Use(middlewares.Recover(logger))
-		v1.Use(cors.Default().Handler)
+	router.Route("/v1", func(r chi.Router) {
+		r.Use(middleware.RealIP)
+		r.Use(middlewares.RequestID)
+		r.Use(middlewares.Tracer)
+		r.Use(middlewares.Logger(logger))
+		r.Use(middlewares.Recover(logger))
+		r.Use(cors.Default().Handler)
 
-		v1.Mount("/auth/v1", handlers.AuthRouter(logger, presenters, authService))
-		v1.Mount("/user/v1", handlers.UserRouter(logger, presenters, userService))
+		r.Mount("/auth", handlers.AuthRouter(logger, presenters, authService))
+
+		r.With(middlewares.Validate(presenters, authService)).
+			Mount("/user", handlers.UserRouter(logger, presenters, userService))
 	})
 
 	listenAddress := fmt.Sprintf("%v:%v", cfg.Rest.Host, cfg.Rest.Port)
