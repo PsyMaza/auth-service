@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"errors"
 	"gitlab.com/g6834/team17/auth-service/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -13,8 +12,6 @@ import (
 type DatabaseRepo struct {
 	db *mongo.Database
 }
-
-var CancellationError = errors.New("cancellation")
 
 const (
 	DB_COLLECTION = "users"

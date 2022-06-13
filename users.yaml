@@ -1,0 +1,7 @@
+---
+- id: 62a6ce442d8f967ecb3d18aa
+  username: test123
+  password: $2a$04$3Fwej2KBe58nKVdo0n9mqugGQrEdwzvJqF1JBUgDI3TLLzntYOW96
+  email: user123@ya.ru
+  first_name: test
+  last_name: 123

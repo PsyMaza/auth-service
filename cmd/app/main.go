@@ -77,11 +77,11 @@ func main() {
 	// Repositories
 	var userRepo interfaces.UserRepo
 
-	//*useDatabase = false // todo: delete when will be created mongodb in k8s
+	*useDatabase = false // todo: delete when will be created mongodb in k8s
 	if *useDatabase {
 		userRepo = repositories.NewDatabaseRepo(mongo)
 	} else {
-		userRepo = nil
+		userRepo = repositories.NewFileRepo()
 	}
 
 	// Presenters

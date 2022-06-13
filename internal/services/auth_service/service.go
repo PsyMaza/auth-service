@@ -117,8 +117,10 @@ func (as *authService) ParseToken(ctx context.Context, tokenString string) (*mod
 		return nil, false, err
 	}
 
+	stringId := fmt.Sprintf("%v", claims[userId])
+	id, _ := primitive.ObjectIDFromHex(stringId)
 	user := &models.User{
-		ID:        primitive.ObjectID{},
+		ID:        id,
 		Username:  fmt.Sprintf("%v", claims[username]),
 		Email:     fmt.Sprintf("%v", claims[email]),
 		FirstName: fmt.Sprintf("%v", claims[firstName]),
