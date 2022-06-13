@@ -1,0 +1,41 @@
+app:
+    name: auth-service
+    debug: true
+    environment: development
+    version: 0.1
+
+jwt:
+    secretKey: 628f955942efffd7e8e30256
+    atLifeTime: 15 # Minutes
+    rtLifeTime: 1 # Hours
+
+grpc:
+    host: 0.0.0.0
+    port: 8082
+    maxConnectionIdle: 5 # Minutes
+    timeout: 15 # Seconds
+    maxConnectionAge: 5 # Minutes
+
+rest:
+    host: 0.0.0.0
+    port: 3000
+
+metrics:
+    host: 0.0.0.0
+    port: 9100
+    path: /metrics
+
+database:
+    host: 0.0.0.0
+    port: 27017
+    user:
+    password:
+    name: mts
+    migrations: migrations
+    driver: mongo-driver
+    timeout: 5 # Seconds
+
+jaeger:
+    service: team17-auth-services
+    host: 0.0.0.0
+    port: 6831
