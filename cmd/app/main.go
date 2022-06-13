@@ -45,9 +45,10 @@ func main() {
 	}
 	cfg := config.New()
 
-	debug := flag.Bool("debug", cfg.App.Debug, "sets log level to debug")
-	useDatabase := flag.Bool("use-db", true, "sets repository source")
+	debug := flag.Bool("debug", cfg.App.Debug, "Defines log level to debug")
+	useDatabase := flag.Bool("use-db", true, "Defines repository source")
 	migration := flag.Bool("migration", true, "Defines the migration start option")
+	telemetry := flag.Bool("telemetry", true, "Defines the telemetry start option")
 	flag.Parse()
 
 	log.Info().
@@ -63,7 +64,10 @@ func main() {
 		Str("host", cfg.Rest.Host).
 		Logger()
 
-	initOtel(&cfg, logger)
+	*telemetry = false // todo: delete when will be created jaeger in k8s
+	if *telemetry {
+		initOtel(&cfg, logger)
+	}
 
 	if *debug {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
