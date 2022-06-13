@@ -20,7 +20,7 @@ COPY --from=builder /app/${GITHUB_PATH}/config.yaml .
 COPY --from=builder /app/${GITHUB_PATH}/users.yaml .
 COPY --from=builder /app/${GITHUB_PATH}/migrations/ ./migrations
 
-RUN chown root:root app-services
+RUN chown root:root auth-service
 
 EXPOSE 3000
 
