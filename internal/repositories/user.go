@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"gitlab.com/g6834/team17/auth-service/internal/models"
+	"gitlab.com/g6834/team17/auth-service/internal/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,6 +25,9 @@ func NewDatabaseRepo(db *mongo.Database) *DatabaseRepo {
 }
 
 func (r *DatabaseRepo) GetAll(ctx context.Context) ([]*models.User, error) {
+	ctx, span := utils.StartSpan(ctx)
+	defer span.End()
+
 	query, err := r.db.Collection(DB_COLLECTION).Find(ctx, bson.D{})
 	defer query.Close(ctx)
 
@@ -45,6 +49,9 @@ func (r *DatabaseRepo) GetAll(ctx context.Context) ([]*models.User, error) {
 }
 
 func (r *DatabaseRepo) Get(ctx context.Context, id string) (*models.User, error) {
+	ctx, span := utils.StartSpan(ctx)
+	defer span.End()
+
 	docId, err := primitive.ObjectIDFromHex(id)
 	query := r.db.Collection(DB_COLLECTION).FindOne(ctx, bson.M{"_id": docId})
 
@@ -55,6 +62,9 @@ func (r *DatabaseRepo) Get(ctx context.Context, id string) (*models.User, error)
 }
 
 func (r *DatabaseRepo) GetByName(ctx context.Context, uname string) (*models.User, error) {
+	ctx, span := utils.StartSpan(ctx)
+	defer span.End()
+
 	query := r.db.Collection(DB_COLLECTION).FindOne(ctx, bson.M{"username": uname})
 
 	var user models.User
@@ -64,6 +74,9 @@ func (r *DatabaseRepo) GetByName(ctx context.Context, uname string) (*models.Use
 }
 
 func (r *DatabaseRepo) Insert(ctx context.Context, user *models.User) error {
+	ctx, span := utils.StartSpan(ctx)
+	defer span.End()
+
 	dataReq := bson.M{
 		"username":      user.Username,
 		"password":      user.Password,
@@ -82,6 +95,9 @@ func (r *DatabaseRepo) Insert(ctx context.Context, user *models.User) error {
 }
 
 func (r *DatabaseRepo) Update(ctx context.Context, user *models.User) error {
+	ctx, span := utils.StartSpan(ctx)
+	defer span.End()
+
 	dataReq := bson.M{
 		"$set": bson.M{
 			"username":   user.Username,
@@ -98,6 +114,10 @@ func (r *DatabaseRepo) Update(ctx context.Context, user *models.User) error {
 }
 
 func (r *DatabaseRepo) UpdatePassword(ctx context.Context, user *models.User) error {
+	ctx, span := utils.StartSpan(ctx)
+	span.SetAttributes()
+	defer span.End()
+
 	dataReq := bson.M{
 		"$set": bson.M{
 			"password": user.Password,

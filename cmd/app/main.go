@@ -57,32 +57,26 @@ func main() {
 		Str("environment", cfg.App.Environment).
 		Msgf("Starting services: %s", cfg.App.Name)
 
-	logger := zerolog.New(os.Stdout).
-		With().
-		Timestamp().
-		Str("role", cfg.App.Name).
-		Str("host", cfg.Rest.Host).
-		Logger()
+	logger := initLogger(cfg, *debug)
 
-	*telemetry = false // todo: delete when will be created jaeger in k8s
+	//*telemetry = false // todo: delete when will be created jaeger in k8s
 	if *telemetry {
 		initOtel(&cfg, logger)
 	}
 
-	if *debug {
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	} else {
-		zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	}
-
-	// Database
-	mongo := initMongo(&cfg)
-
 	// Repositories
 	var userRepo interfaces.UserRepo
 
-	*useDatabase = false // todo: delete when will be created mongodb in k8s
+	//*useDatabase = false // todo: delete when will be created mongodb in k8s
 	if *useDatabase {
+		// Database
+		mongo := initMongo(&cfg)
+
+		// Migration
+		if *migration {
+			runMigrations(mongo, &cfg)
+		}
+
 		userRepo = repositories.NewDatabaseRepo(mongo)
 	} else {
 		userRepo = repositories.NewFileRepo()
@@ -90,12 +84,6 @@ func main() {
 
 	// Presenters
 	presenters := presenters.NewPresenters(logger)
-
-	// Migration
-	*migration = false // todo: delete when will be created mongodb in k8s
-	if *migration {
-		runMigrations(mongo, &cfg)
-	}
 
 	// Services
 	authService := auth_service.New(&auth_service.JwtSettings{
@@ -122,6 +110,27 @@ func main() {
 
 	listenAddress := fmt.Sprintf("%v:%v", cfg.Rest.Host, cfg.Rest.Port)
 	http.ListenAndServe(listenAddress, router)
+}
+
+func initLogger(cfg config.Config, debug bool) zerolog.Logger {
+	if debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	} else {
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	}
+
+	zerolog.TimestampFieldName = "timestamp"
+	zerolog.TimeFieldFormat = time.RFC3339
+
+	logger := zerolog.New(os.Stdout).
+		With().
+		Timestamp().
+		Str("app_name", cfg.App.Name).
+		Str("host_ip", cfg.Rest.Host).
+		Str("host_port", string(cfg.Rest.Port)).
+		Logger()
+
+	return logger
 }
 
 func initOtel(cfg *config.Config, logger zerolog.Logger) {

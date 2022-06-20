@@ -18,6 +18,9 @@ func New(repo interfaces.UserRepo) *userService {
 }
 
 func (us *userService) GetAll(ctx context.Context) ([]*models.User, error) {
+	ctx, span := utils.StartSpan(ctx)
+	defer span.End()
+
 	users, err := us.repo.GetAll(ctx)
 	if err != nil {
 		return nil, err
@@ -26,17 +29,26 @@ func (us *userService) GetAll(ctx context.Context) ([]*models.User, error) {
 }
 
 func (us *userService) Create(ctx context.Context, user *models.User) (err error) {
+	ctx, span := utils.StartSpan(ctx)
+	defer span.End()
+
 	user.Password = utils.GetHash([]byte(user.Password))
 	err = us.repo.Insert(ctx, user)
 	return err
 }
 
 func (us *userService) Update(ctx context.Context, user *models.User) (err error) {
+	ctx, span := utils.StartSpan(ctx)
+	defer span.End()
+
 	err = us.repo.Update(ctx, user)
 	return err
 }
 
 func (us *userService) UpdatePassword(ctx context.Context, user *models.User) (err error) {
+	ctx, span := utils.StartSpan(ctx)
+	defer span.End()
+
 	err = us.repo.Update(ctx, user)
 	return err
 }
