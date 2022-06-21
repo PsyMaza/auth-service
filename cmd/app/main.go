@@ -122,7 +122,7 @@ func main() {
 	}
 
 	debugRouter := chi.NewRouter()
-	debugRouter.Mount("/debug", handlers.ProfilerRouter())
+	debugRouter.Mount("/debug", handlers.ProfilerRouter(logger, presenters))
 	debugAddress := fmt.Sprintf("%v:%v", cfg.Rest.Host, cfg.Rest.DebugPort)
 	debugSrv := http.Server{
 		Addr:    debugAddress,
