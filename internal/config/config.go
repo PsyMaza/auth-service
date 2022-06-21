@@ -33,6 +33,7 @@ type Database struct {
 type Rest struct {
 	Host            string `yaml:"host"`
 	Port            int    `yaml:"port"`
+	DebugPort       int    `yaml:"debugPort"`
 	ShutdownTimeout int    `yaml:"shutdownTimeout"`
 	ReadTimeout     int    `yaml:"readTimeout"`
 	WriteTimeout    int    `yaml:"writeTimeout"`

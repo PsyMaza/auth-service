@@ -97,8 +97,8 @@ func main() {
 	}, userRepo)
 	userService := user_service.New(userRepo)
 
-	router := chi.NewRouter()
-	router.Route("/v1", func(r chi.Router) {
+	restRouter := chi.NewRouter()
+	restRouter.Route("/v1", func(r chi.Router) {
 		r.Use(middleware.RealIP)
 		r.Use(middlewares.RequestID)
 		r.Use(middlewares.Tracer)
@@ -112,13 +112,21 @@ func main() {
 			Mount("/user", handlers.UserRouter(logger, presenters, userService))
 	})
 
-	listenAddress := fmt.Sprintf("%v:%v", cfg.Rest.Host, cfg.Rest.Port)
-	srv := http.Server{
-		Addr:         listenAddress,
-		Handler:      router,
+	restAddress := fmt.Sprintf("%v:%v", cfg.Rest.Host, cfg.Rest.Port)
+	restSrv := http.Server{
+		Addr:         restAddress,
+		Handler:      restRouter,
 		ReadTimeout:  time.Second * time.Duration(cfg.Rest.ReadTimeout),
 		WriteTimeout: time.Second * time.Duration(cfg.Rest.WriteTimeout),
 		IdleTimeout:  time.Second * time.Duration(cfg.Rest.IdleTimeout),
+	}
+
+	debugRouter := chi.NewRouter()
+	debugRouter.Mount("/debug", handlers.ProfilerRouter())
+	debugAddress := fmt.Sprintf("%v:%v", cfg.Rest.Host, cfg.Rest.DebugPort)
+	debugSrv := http.Server{
+		Addr:    debugAddress,
+		Handler: debugRouter,
 	}
 
 	signalChan := make(chan os.Signal, 1)
@@ -136,7 +144,8 @@ func main() {
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Rest.ShutdownTimeout)*time.Second)
 		defer cancel()
-		srv.Shutdown(ctx)
+		restSrv.Shutdown(ctx)
+		debugSrv.Shutdown(ctx)
 
 		select {
 		case <-time.After(time.Duration(cfg.Rest.ShutdownTimeout+1) * time.Second):
@@ -145,7 +154,9 @@ func main() {
 		}
 	}()
 
-	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	go debugSrv.ListenAndServe()
+
+	if err := restSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		logger.Fatal().Err(err).Msg("service was terminated with an error")
 	}
 }
