@@ -144,8 +144,15 @@ func main() {
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Rest.ShutdownTimeout)*time.Second)
 		defer cancel()
-		restSrv.Shutdown(ctx)
-		debugSrv.Shutdown(ctx)
+		err := restSrv.Shutdown(ctx)
+		if err != nil {
+			logger.Error().Err(err).Msg("couldn't terminated rest server")
+		}
+
+		err = debugSrv.Shutdown(ctx)
+		if err != nil {
+			logger.Error().Err(err).Msg("couldn't terminated debug server")
+		}
 
 		select {
 		case <-time.After(time.Duration(cfg.Rest.ShutdownTimeout+1) * time.Second):
@@ -154,10 +161,14 @@ func main() {
 		}
 	}()
 
-	go debugSrv.ListenAndServe()
+	go func() {
+		if err := debugSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Fatal().Err(err).Msg("debug server was terminated with an error")
+		}
+	}()
 
 	if err := restSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		logger.Fatal().Err(err).Msg("service was terminated with an error")
+		logger.Fatal().Err(err).Msg("rest server was terminated with an error")
 	}
 }
 
