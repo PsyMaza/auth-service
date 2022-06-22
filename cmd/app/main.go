@@ -187,7 +187,7 @@ func initLogger(cfg config.Config, debug bool) zerolog.Logger {
 		Timestamp().
 		Str("app_name", cfg.App.Name).
 		Str("host_ip", cfg.Rest.Host).
-		Str("host_port", string(cfg.Rest.Port)).
+		Str("host_port", fmt.Sprint(cfg.Rest.Port)).
 		Logger()
 
 	return logger
