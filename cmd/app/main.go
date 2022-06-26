@@ -13,6 +13,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"gitlab.com/g6834/team17/auth-service/internal/api/grpc"
 	"gitlab.com/g6834/team17/auth-service/internal/api/handlers"
 	"gitlab.com/g6834/team17/auth-service/internal/api/middlewares"
 	"gitlab.com/g6834/team17/auth-service/internal/api/presenters"
@@ -55,12 +56,6 @@ func main() {
 	telemetry := flag.Bool("telemetry", true, "Defines the telemetry start option")
 	flag.Parse()
 
-	log.Info().
-		Str("version", cfg.App.Version).
-		Bool("debug", *debug).
-		Str("environment", cfg.App.Environment).
-		Msgf("Starting services: %s", cfg.App.Name)
-
 	logger := initLogger(cfg, *debug)
 
 	//*telemetry = false // todo: delete when will be created jaeger in k8s
@@ -71,7 +66,7 @@ func main() {
 	// Repositories
 	var userRepo interfaces.UserRepo
 
-	//*useDatabase = false // todo: delete when will be created mongodb in k8s
+	*useDatabase = false // todo: delete when will be created mongodb in k8s
 	if *useDatabase {
 		// Database
 		mongo := initMongo(&cfg)
@@ -162,10 +157,22 @@ func main() {
 	}()
 
 	go func() {
+		if err := grpc.NewGrpcServer(authService).Start(&cfg); err != nil {
+			logger.Fatal().Err(err).Msg("Failed creating gRPC server")
+		}
+	}()
+
+	go func() {
 		if err := debugSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Fatal().Err(err).Msg("debug server was terminated with an error")
 		}
 	}()
+
+	log.Info().
+		Str("version", cfg.App.Version).
+		Bool("debug", *debug).
+		Str("environment", cfg.App.Environment).
+		Msgf("Starting services: %s", cfg.App.Name)
 
 	if err := restSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		logger.Fatal().Err(err).Msg("rest server was terminated with an error")

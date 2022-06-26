@@ -95,21 +95,62 @@ func createToken(user *models.User, settings *JwtSettings) (td *models.TokenDeta
 	return
 }
 
-func (as *authService) VerifyToken(ctx context.Context, tokenString string) (bool, error) {
+func (as *authService) VerifyToken(ctx context.Context, tokens *models.TokenPair) (*models.TokenPair, error) {
 	ctx, span := utils.StartSpan(ctx)
 	defer span.End()
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	at, err := parseToken(tokens.AccessToken, as.jwtSettings.SecretKey)
+	if err != nil {
+		return nil, err
+	}
+
+	if !at.Valid {
+		return as.newPairToken(ctx, tokens.AccessToken)
+	}
+
+	rt, err := parseToken(tokens.RefreshToken, as.jwtSettings.SecretKey)
+	if err != nil {
+		return nil, err
+	}
+
+	if !rt.Valid {
+		return as.newPairToken(ctx, tokens.RefreshToken)
+	}
+
+	return &models.TokenPair{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	}, nil
+}
+
+func (as *authService) newPairToken(ctx context.Context, token string) (*models.TokenPair, error) {
+	user, _, err := as.ParseToken(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	td, err := createToken(user, as.jwtSettings)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.TokenPair{
+		AccessToken:  td.AccessToken,
+		RefreshToken: td.RefreshToken,
+	}, nil
+}
+
+func parseToken(token, secretKey string) (*jwt.Token, error) {
+	t, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(as.jwtSettings.SecretKey), nil
+		return []byte(secretKey), nil
 	})
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-
-	return token.Valid, nil
+	return t, nil
 }
 func (as *authService) ParseToken(ctx context.Context, tokenString string) (*models.User, bool, error) {
 	ctx, span := utils.StartSpan(ctx)

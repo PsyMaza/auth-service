@@ -68,6 +68,15 @@ type Jaeger struct {
 	Port    string `yaml:"port"`
 }
 
+// Grpc - contains parameter address grpc.
+type Grpc struct {
+	Port              int    `yaml:"port"`
+	MaxConnectionIdle int64  `yaml:"maxConnectionIdle"`
+	Timeout           int64  `yaml:"timeout"`
+	MaxConnectionAge  int64  `yaml:"maxConnectionAge"`
+	Host              string `yaml:"host"`
+}
+
 // Config - contains all configuration parameters in config package.
 type Config struct {
 	App      App      `yaml:"app"`
@@ -76,6 +85,7 @@ type Config struct {
 	Database Database `yaml:"database"`
 	Metrics  Metrics  `yaml:"metrics"`
 	Jaeger   Jaeger   `yaml:"jaeger"`
+	Grpc     Grpc     `yaml:"grpc"`
 }
 
 // ReadConfigYML - read configurations from file and init instance Config.
