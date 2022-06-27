@@ -66,7 +66,7 @@ func main() {
 	// Repositories
 	var userRepo interfaces.UserRepo
 
-	*useDatabase = false // todo: delete when will be created mongodb in k8s
+	//*useDatabase = false // todo: delete when will be created mongodb in k8s
 	if *useDatabase {
 		// Database
 		mongo := initMongo(&cfg)
@@ -176,6 +176,34 @@ func main() {
 
 	if err := restSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		logger.Fatal().Err(err).Msg("rest server was terminated with an error")
+	}
+
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(
+		signalChan,
+		syscall.SIGINT,
+		syscall.SIGHUP,
+		syscall.SIGQUIT,
+	)
+
+	// Graceful shutdown
+	go func() {
+		<-signalChan
+		logger.Warn().Msg("shutting down")
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Rest.ShutdownTimeout)*time.Second)
+		defer cancel()
+		srv.Shutdown(ctx)
+
+		select {
+		case <-time.After(time.Duration(cfg.Rest.ShutdownTimeout+1) * time.Second):
+			logger.Warn().Msg("not all connections done")
+		case <-ctx.Done():
+		}
+	}()
+
+	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logger.Fatal().Err(err).Msg("service was terminated with an error")
 	}
 }
 
