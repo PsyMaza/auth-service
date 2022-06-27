@@ -31,8 +31,12 @@ type Database struct {
 
 // Rest - contains parameter rest json connection.
 type Rest struct {
-	Port int    `yaml:"port"`
-	Host string `yaml:"host"`
+	Host            string `yaml:"host"`
+	Port            int    `yaml:"port"`
+	ShutdownTimeout int    `yaml:"shutdownTimeout"`
+	ReadTimeout     int    `yaml:"readTimeout"`
+	WriteTimeout    int    `yaml:"writeTimeout"`
+	IdleTimeout     int    `yaml:"idleTimeout"`
 }
 
 // App - contains all parameters project information.
@@ -63,15 +67,6 @@ type Jaeger struct {
 	Port    string `yaml:"port"`
 }
 
-// Status config for services.
-type Status struct {
-	Port          int    `yaml:"port"`
-	Host          string `yaml:"host"`
-	VersionPath   string `yaml:"versionPath"`
-	LivenessPath  string `yaml:"livenessPath"`
-	ReadinessPath string `yaml:"readinessPath"`
-}
-
 // Config - contains all configuration parameters in config package.
 type Config struct {
 	App      App      `yaml:"app"`
@@ -80,7 +75,6 @@ type Config struct {
 	Database Database `yaml:"database"`
 	Metrics  Metrics  `yaml:"metrics"`
 	Jaeger   Jaeger   `yaml:"jaeger"`
-	Status   Status   `yaml:"status"`
 }
 
 // ReadConfigYML - read configurations from file and init instance Config.
