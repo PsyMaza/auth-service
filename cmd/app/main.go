@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -22,6 +23,7 @@ import (
 	"gitlab.com/g6834/team17/auth-service/internal/services/auth_service"
 	"gitlab.com/g6834/team17/auth-service/internal/services/user_service"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/propagation"
@@ -30,6 +32,8 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -57,32 +61,26 @@ func main() {
 		Str("environment", cfg.App.Environment).
 		Msgf("Starting services: %s", cfg.App.Name)
 
-	logger := zerolog.New(os.Stdout).
-		With().
-		Timestamp().
-		Str("role", cfg.App.Name).
-		Str("host", cfg.Rest.Host).
-		Logger()
+	logger := initLogger(cfg, *debug)
 
-	*telemetry = false // todo: delete when will be created jaeger in k8s
+	//*telemetry = false // todo: delete when will be created jaeger in k8s
 	if *telemetry {
 		initOtel(&cfg, logger)
 	}
 
-	if *debug {
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	} else {
-		zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	}
-
-	// Database
-	mongo := initMongo(&cfg)
-
 	// Repositories
 	var userRepo interfaces.UserRepo
 
-	*useDatabase = false // todo: delete when will be created mongodb in k8s
+	//*useDatabase = false // todo: delete when will be created mongodb in k8s
 	if *useDatabase {
+		// Database
+		mongo := initMongo(&cfg)
+
+		// Migration
+		if *migration {
+			runMigrations(mongo, &cfg)
+		}
+
 		userRepo = repositories.NewDatabaseRepo(mongo)
 	} else {
 		userRepo = repositories.NewFileRepo()
@@ -90,12 +88,6 @@ func main() {
 
 	// Presenters
 	presenters := presenters.NewPresenters(logger)
-
-	// Migration
-	*migration = false // todo: delete when will be created mongodb in k8s
-	if *migration {
-		runMigrations(mongo, &cfg)
-	}
 
 	// Services
 	authService := auth_service.New(&auth_service.JwtSettings{
@@ -121,10 +113,62 @@ func main() {
 	})
 
 	listenAddress := fmt.Sprintf("%v:%v", cfg.Rest.Host, cfg.Rest.Port)
-	err := http.ListenAndServe(listenAddress, router)
-	if err != nil {
-		return
+	srv := http.Server{
+		Addr:         listenAddress,
+		Handler:      router,
+		ReadTimeout:  time.Second * time.Duration(cfg.Rest.ReadTimeout),
+		WriteTimeout: time.Second * time.Duration(cfg.Rest.WriteTimeout),
+		IdleTimeout:  time.Second * time.Duration(cfg.Rest.IdleTimeout),
 	}
+
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(
+		signalChan,
+		syscall.SIGINT,
+		syscall.SIGHUP,
+		syscall.SIGQUIT,
+	)
+
+	// Graceful shutdown
+	go func() {
+		<-signalChan
+		logger.Warn().Msg("shutting down")
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Rest.ShutdownTimeout)*time.Second)
+		defer cancel()
+		srv.Shutdown(ctx)
+
+		select {
+		case <-time.After(time.Duration(cfg.Rest.ShutdownTimeout+1) * time.Second):
+			logger.Warn().Msg("not all connections done")
+		case <-ctx.Done():
+		}
+	}()
+
+	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logger.Fatal().Err(err).Msg("service was terminated with an error")
+	}
+}
+
+func initLogger(cfg config.Config, debug bool) zerolog.Logger {
+	if debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	} else {
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	}
+
+	zerolog.TimestampFieldName = "timestamp"
+	zerolog.TimeFieldFormat = time.RFC3339
+
+	logger := zerolog.New(os.Stdout).
+		With().
+		Timestamp().
+		Str("app_name", cfg.App.Name).
+		Str("host_ip", cfg.Rest.Host).
+		Str("host_port", string(cfg.Rest.Port)).
+		Logger()
+
+	return logger
 }
 
 func initOtel(cfg *config.Config, logger zerolog.Logger) {
@@ -174,6 +218,13 @@ func initMongo(cfg *config.Config) *mongo.Database {
 	mongo, err := db.Connect(mongoCfg)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Couldn't connection to MongoDB")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	err = mongo.Client().Ping(ctx, readpref.Primary())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Couldn't ping to MongoDB")
 	}
 
 	return mongo

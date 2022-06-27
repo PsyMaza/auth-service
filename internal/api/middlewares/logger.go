@@ -15,11 +15,11 @@ func Logger(logger zerolog.Logger) func(http.Handler) http.Handler {
 			start := time.Now()
 			defer func() {
 				logger.Info().
-					Str("request-id", GetReqID(r.Context())).
+					Str("request_id", GetReqID(r.Context())).
+					Str("request_path", r.URL.Path).
 					Int("status", ww.Status()).
 					Int("bytes", ww.BytesWritten()).
 					Str("method", r.Method).
-					Str("path", r.URL.Path).
 					Str("query", r.URL.RawQuery).
 					Str("ip", r.RemoteAddr).
 					Str("trace.id", trace.SpanFromContext(r.Context()).SpanContext().TraceID().String()).

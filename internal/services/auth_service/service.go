@@ -41,6 +41,9 @@ func New(jwtSettings *JwtSettings, repo interfaces.UserRepo) *authService {
 }
 
 func (as *authService) Authorize(ctx context.Context, uname, pass string) (*models.TokenDetails, error) {
+	ctx, span := utils.StartSpan(ctx)
+	defer span.End()
+
 	user, err := as.repo.GetByName(ctx, uname)
 	if err != nil {
 		log.Println(err)
@@ -93,6 +96,9 @@ func createToken(user *models.User, settings *JwtSettings) (td *models.TokenDeta
 }
 
 func (as *authService) VerifyToken(ctx context.Context, tokenString string) (bool, error) {
+	ctx, span := utils.StartSpan(ctx)
+	defer span.End()
+
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -106,6 +112,9 @@ func (as *authService) VerifyToken(ctx context.Context, tokenString string) (boo
 	return token.Valid, nil
 }
 func (as *authService) ParseToken(ctx context.Context, tokenString string) (*models.User, bool, error) {
+	ctx, span := utils.StartSpan(ctx)
+	defer span.End()
+
 	claims := jwt.MapClaims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
