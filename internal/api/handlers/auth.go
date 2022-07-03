@@ -135,13 +135,11 @@ func (handlers *authHandlers) validate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok, err := handlers.authService.VerifyToken(ctx, at.Value)
-	if !ok || err != nil {
-		handlers.presenters.Error(w, r, models.ErrorForbidden(err))
-		return
-	}
-	ok, err = handlers.authService.VerifyToken(ctx, rt.Value)
-	if !ok || err != nil {
+	_, err = handlers.authService.VerifyToken(ctx, &models.TokenPair{
+		AccessToken:  at.Value,
+		RefreshToken: rt.Value,
+	})
+	if err != nil {
 		handlers.presenters.Error(w, r, models.ErrorForbidden(err))
 		return
 	}

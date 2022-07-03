@@ -7,7 +7,7 @@ import (
 
 type AuthService interface {
 	Authorize(ctx context.Context, uname, pass string) (*models.TokenDetails, error)
-	VerifyToken(ctx context.Context, tokenString string) (bool, error)
+	VerifyToken(ctx context.Context, tokens *models.TokenPair) (*models.TokenPair, error)
 	ParseToken(ctx context.Context, tokenString string) (*models.User, bool, error)
 }
 

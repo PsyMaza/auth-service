@@ -23,13 +23,11 @@ func Validate(presenters interfaces.Presenters, authService interfaces.AuthServi
 				return
 			}
 
-			ok, err := authService.VerifyToken(r.Context(), at.Value)
-			if !ok || err != nil {
-				presenters.Error(rw, r, models.ErrorForbidden(err))
-				return
-			}
-			ok, err = authService.VerifyToken(r.Context(), rt.Value)
-			if !ok || err != nil {
+			_, err = authService.VerifyToken(r.Context(), &models.TokenPair{
+				AccessToken:  at.Value,
+				RefreshToken: rt.Value,
+			})
+			if err != nil {
 				presenters.Error(rw, r, models.ErrorForbidden(err))
 				return
 			}
