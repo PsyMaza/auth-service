@@ -13,6 +13,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"gitlab.com/g6834/team17/auth-service/internal/api/grpc"
 	"gitlab.com/g6834/team17/auth-service/internal/api/handlers"
 	"gitlab.com/g6834/team17/auth-service/internal/api/middlewares"
 	"gitlab.com/g6834/team17/auth-service/internal/api/presenters"
@@ -55,12 +56,6 @@ func main() {
 	telemetry := flag.Bool("telemetry", true, "Defines the telemetry start option")
 	flag.Parse()
 
-	log.Info().
-		Str("version", cfg.App.Version).
-		Bool("debug", *debug).
-		Str("environment", cfg.App.Environment).
-		Msgf("Starting services: %s", cfg.App.Name)
-
 	logger := initLogger(cfg, *debug)
 
 	//*telemetry = false // todo: delete when will be created jaeger in k8s
@@ -97,8 +92,8 @@ func main() {
 	}, userRepo)
 	userService := user_service.New(userRepo)
 
-	router := chi.NewRouter()
-	router.Route("/v1", func(r chi.Router) {
+	restRouter := chi.NewRouter()
+	restRouter.Route("/v1", func(r chi.Router) {
 		r.Use(middleware.RealIP)
 		r.Use(middlewares.RequestID)
 		r.Use(middlewares.Tracer)
@@ -112,13 +107,21 @@ func main() {
 			Mount("/user", handlers.UserRouter(logger, presenters, userService))
 	})
 
-	listenAddress := fmt.Sprintf("%v:%v", cfg.Rest.Host, cfg.Rest.Port)
-	srv := http.Server{
-		Addr:         listenAddress,
-		Handler:      router,
+	restAddress := fmt.Sprintf("%v:%v", cfg.Rest.Host, cfg.Rest.Port)
+	restSrv := http.Server{
+		Addr:         restAddress,
+		Handler:      restRouter,
 		ReadTimeout:  time.Second * time.Duration(cfg.Rest.ReadTimeout),
 		WriteTimeout: time.Second * time.Duration(cfg.Rest.WriteTimeout),
 		IdleTimeout:  time.Second * time.Duration(cfg.Rest.IdleTimeout),
+	}
+
+	debugRouter := chi.NewRouter()
+	debugRouter.Mount("/debug", handlers.ProfilerRouter(logger, presenters))
+	debugAddress := fmt.Sprintf("%v:%v", cfg.Rest.Host, cfg.Rest.DebugPort)
+	debugSrv := http.Server{
+		Addr:    debugAddress,
+		Handler: debugRouter,
 	}
 
 	signalChan := make(chan os.Signal, 1)
@@ -136,7 +139,15 @@ func main() {
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Rest.ShutdownTimeout)*time.Second)
 		defer cancel()
-		srv.Shutdown(ctx)
+		err := restSrv.Shutdown(ctx)
+		if err != nil {
+			logger.Error().Err(err).Msg("couldn't terminated rest server")
+		}
+
+		err = debugSrv.Shutdown(ctx)
+		if err != nil {
+			logger.Error().Err(err).Msg("couldn't terminated debug server")
+		}
 
 		select {
 		case <-time.After(time.Duration(cfg.Rest.ShutdownTimeout+1) * time.Second):
@@ -145,8 +156,26 @@ func main() {
 		}
 	}()
 
-	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		logger.Fatal().Err(err).Msg("service was terminated with an error")
+	go func() {
+		if err := grpc.NewGrpcServer(authService).Start(&cfg); err != nil {
+			logger.Fatal().Err(err).Msg("Failed creating gRPC server")
+		}
+	}()
+
+	go func() {
+		if err := debugSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Fatal().Err(err).Msg("debug server was terminated with an error")
+		}
+	}()
+
+	log.Info().
+		Str("version", cfg.App.Version).
+		Bool("debug", *debug).
+		Str("environment", cfg.App.Environment).
+		Msgf("Starting services: %s", cfg.App.Name)
+
+	if err := restSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logger.Fatal().Err(err).Msg("rest server was terminated with an error")
 	}
 }
 
@@ -165,7 +194,7 @@ func initLogger(cfg config.Config, debug bool) zerolog.Logger {
 		Timestamp().
 		Str("app_name", cfg.App.Name).
 		Str("host_ip", cfg.Rest.Host).
-		Str("host_port", string(cfg.Rest.Port)).
+		Str("host_port", fmt.Sprint(cfg.Rest.Port)).
 		Logger()
 
 	return logger

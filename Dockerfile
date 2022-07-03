@@ -7,6 +7,7 @@ WORKDIR /app/${GITHUB_PATH}
 
 RUN apk add --update make git curl
 COPY Makefile Makefile
+RUN make deps
 COPY . .
 RUN make build
 
