@@ -49,6 +49,6 @@ func (us *userService) UpdatePassword(ctx context.Context, user *models.User) (e
 	ctx, span := utils.StartSpan(ctx)
 	defer span.End()
 
-	err = us.repo.Update(ctx, user)
+	err = us.repo.UpdatePassword(ctx, user)
 	return err
 }
