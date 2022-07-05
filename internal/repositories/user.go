@@ -53,6 +53,9 @@ func (r *DatabaseRepo) Get(ctx context.Context, id string) (*models.User, error)
 	defer span.End()
 
 	docId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
 	query := r.db.Collection(DB_COLLECTION).FindOne(ctx, bson.M{"_id": docId})
 
 	var user models.User

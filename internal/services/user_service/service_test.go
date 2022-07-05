@@ -1,4 +1,4 @@
-package user_service
+package user_service_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"gitlab.com/g6834/team17/auth-service/internal/models"
 	"gitlab.com/g6834/team17/auth-service/internal/repositories"
+	"gitlab.com/g6834/team17/auth-service/internal/services/user_service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
 )
@@ -39,7 +40,7 @@ func (u *unitTestSuit) TestGetAllEmpty() {
 	emptySlice := make([]*models.User, 0)
 	r.On("GetAll").Return(emptySlice)
 
-	us := New(r)
+	us := user_service.New(r)
 
 	users, err := us.GetAll(context.Background())
 
@@ -57,7 +58,7 @@ func (u *unitTestSuit) TestGetAllNotEmpty() {
 
 	r.On("GetAll").Return(userSlice)
 
-	us := New(r)
+	us := user_service.New(r)
 
 	users, err := us.GetAll(context.Background())
 
@@ -73,7 +74,7 @@ func (u *unitTestSuit) TestGetAllError() {
 	r := new(repositories.MockUserRepository)
 	r.On("GetAll").Return(nil, testErr)
 
-	us := New(r)
+	us := user_service.New(r)
 
 	users, err := us.GetAll(context.Background())
 
@@ -89,7 +90,7 @@ func (u *unitTestSuit) TestCreateSuccess() {
 
 	r.On("Insert", &user).Return(nil)
 
-	us := New(r)
+	us := user_service.New(r)
 
 	err := us.Create(context.Background(), &user)
 
@@ -101,7 +102,7 @@ func (u *unitTestSuit) TestCreateError() {
 
 	r.On("Insert", &user).Return(testErr)
 
-	us := New(r)
+	us := user_service.New(r)
 
 	err := us.Create(context.Background(), &user)
 
@@ -116,7 +117,7 @@ func (u *unitTestSuit) TestUpdateError() {
 
 	r.On("Update", &user).Return(testErr)
 
-	us := New(r)
+	us := user_service.New(r)
 
 	err := us.Update(context.Background(), &user)
 
@@ -131,7 +132,7 @@ func (u *unitTestSuit) TestUpdateSuccess() {
 
 	r.On("Update", &user).Return(nil)
 
-	us := New(r)
+	us := user_service.New(r)
 
 	err := us.Update(context.Background(), &user)
 
@@ -145,7 +146,7 @@ func (u *unitTestSuit) TestUpdatePasswordSuccess() {
 
 	r.On("UpdatePassword", &user).Return(nil)
 
-	us := New(r)
+	us := user_service.New(r)
 
 	err := us.UpdatePassword(context.Background(), &user)
 
@@ -159,7 +160,7 @@ func (u *unitTestSuit) TestUpdatePasswordError() {
 
 	r.On("UpdatePassword", &user).Return(testErr)
 
-	us := New(r)
+	us := user_service.New(r)
 
 	err := us.UpdatePassword(context.Background(), &user)
 

@@ -1,4 +1,4 @@
-package auth_service
+package auth_service_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"gitlab.com/g6834/team17/auth-service/internal/models"
 	"gitlab.com/g6834/team17/auth-service/internal/repositories"
+	"gitlab.com/g6834/team17/auth-service/internal/services/auth_service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
 )
@@ -23,7 +24,7 @@ var (
 		LastName:     "123",
 		CreationDate: 0,
 	}
-	jwtSettings = JwtSettings{
+	jwtSettings = auth_service.JwtSettings{
 		SecretKey:  "628f955942efffd7e8e30256",
 		AtLifeTime: 5,
 		RtLifeTime: 5,
@@ -43,7 +44,7 @@ func (u *unitTestSuit) TestAuthorizeSuccess() {
 
 	r.On("GetByName", userName).Return(&user)
 
-	as := New(&jwtSettings, r)
+	as := auth_service.New(&jwtSettings, r)
 
 	tokens, err := as.Authorize(context.Background(), userName, userPassword)
 
@@ -60,13 +61,13 @@ func (u *unitTestSuit) TestAuthorizeWrongUsername() {
 
 	r.On("GetByName", userName).Return(nil, errors.New(""))
 
-	as := New(&jwtSettings, r)
+	as := auth_service.New(&jwtSettings, r)
 
 	tokens, err := as.Authorize(context.Background(), userName, userPassword)
 
 	u.Nil(tokens, "tokens must be nil")
 	u.NotNil(err, "error must be not nil")
-	u.ErrorIs(err, WrongUnameOrPassErr, fmt.Sprintf("error must be WrongUnameOrPassErr. Expected: %s, Received: %s", WrongUnameOrPassErr, err))
+	u.ErrorIs(err, auth_service.WrongUnameOrPassErr, fmt.Sprintf("error must be WrongUnameOrPassErr. Expected: %s, Received: %s", auth_service.WrongUnameOrPassErr, err))
 
 	r.AssertExpectations(u.T())
 }
@@ -76,13 +77,13 @@ func (u *unitTestSuit) TestAuthorizeWrongPass() {
 
 	r.On("GetByName", userName).Return(&user)
 
-	as := New(&jwtSettings, r)
+	as := auth_service.New(&jwtSettings, r)
 
 	tokens, err := as.Authorize(context.Background(), userName, userPassword+"x")
 
 	u.Nil(tokens, "tokens must be nil")
 	u.NotNil(err, "error must be not nil")
-	u.ErrorIs(err, WrongUnameOrPassErr, fmt.Sprintf("error must be WrongUnameOrPassErr. Expected: %s, Received: %s", WrongUnameOrPassErr, err))
+	u.ErrorIs(err, auth_service.WrongUnameOrPassErr, fmt.Sprintf("error must be WrongUnameOrPassErr. Expected: %s, Received: %s", auth_service.WrongUnameOrPassErr, err))
 
 	r.AssertExpectations(u.T())
 }
@@ -92,7 +93,7 @@ func (u *unitTestSuit) TestVerifyTokenSuccess() {
 
 	r.On("GetByName", userName).Return(&user)
 
-	as := New(&jwtSettings, r)
+	as := auth_service.New(&jwtSettings, r)
 
 	tokens, err := as.Authorize(context.Background(), userName, userPassword)
 	u.Nil(err, "error must be nil")
@@ -115,7 +116,7 @@ func (u *unitTestSuit) TestVerifyTokenWrongTokens() {
 
 	r.On("GetByName", userName).Return(&user)
 
-	as := New(&jwtSettings, r)
+	as := auth_service.New(&jwtSettings, r)
 
 	tokens, err := as.Authorize(context.Background(), userName, userPassword)
 	u.Nil(err, "error must be nil")
@@ -142,7 +143,7 @@ func (u *unitTestSuit) TestParseTokenSuccess() {
 
 	r.On("GetByName", userName).Return(&user)
 
-	as := New(&jwtSettings, r)
+	as := auth_service.New(&jwtSettings, r)
 
 	tokens, err := as.Authorize(context.Background(), userName, userPassword)
 	u.Nil(err, "error must be nil")
@@ -164,7 +165,7 @@ func (u *unitTestSuit) TestParseTokenSuccess() {
 func (u *unitTestSuit) TestParseTokenFailed() {
 	r := new(repositories.MockUserRepository)
 
-	as := New(&jwtSettings, r)
+	as := auth_service.New(&jwtSettings, r)
 
 	us, ok, err := as.ParseToken(context.Background(), "something token")
 
