@@ -29,6 +29,8 @@ lint:
 test:
 	go test -v -race -timeout 30s -coverprofile cover.out ./...
 	go tool cover -func cover.out | grep total | awk '{print $$3}'
+	go test -v -race -fuzz=Fuzz -fuzztime 30s internal/test/fuzz/auth_service_fuzz_test.go
+	go test -v -race -fuzz=Fuzz -fuzztime 30s internal/utils/password_test.go
 
 # ----------------------------------------------------------------
 
