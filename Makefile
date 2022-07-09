@@ -70,3 +70,15 @@ build: generate .build
 .build:
 	go mod download && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
 		-v -o ./bin/auth-service$(shell go env GOEXE) ./cmd/app/main.go
+
+# ----------------------------------------------------------------
+
+docs:
+	docker build --tag swaggo/swag:1.8.1 . --file swaggo.Dockerfile && \
+	docker run --rm --volume ${PWD}:/app --workdir /app swaggo/swag:1.8.1 /root/swag init \
+		--parseDependency \
+		--parseInternal \
+		--dir ./internal/api \
+		--generalInfo swagger.go \
+		--output ./api/swagger/public \
+		--parseDepth 1

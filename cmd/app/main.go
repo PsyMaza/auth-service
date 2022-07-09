@@ -13,6 +13,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"gitlab.com/g6834/team17/auth-service/internal/api/grpc"
 	"gitlab.com/g6834/team17/auth-service/internal/api/handlers"
 	"gitlab.com/g6834/team17/auth-service/internal/api/middlewares"
@@ -101,6 +102,9 @@ func main() {
 		r.Use(middlewares.Recover(logger))
 		r.Use(cors.Default().Handler)
 
+		r.Get("/swagger/*", httpSwagger.Handler(
+			httpSwagger.URL(fmt.Sprintf("%s/swagger/doc.json"))))
+
 		r.Mount("/auth", handlers.AuthRouter(logger, presenters, authService))
 
 		r.With(middlewares.Validate(presenters, authService)).
@@ -166,6 +170,18 @@ func main() {
 		if err := debugSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Fatal().Err(err).Msg("debug server was terminated with an error")
 		}
+	}()
+
+	r := chi.NewRouter()
+
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"), //The url pointing to API definition
+	))
+
+	swagger := handlers.SwaggerRouter("http://localhost:1323")
+
+	go func() {
+		http.ListenAndServe(":1323", swagger)
 	}()
 
 	log.Info().

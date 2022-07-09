@@ -36,6 +36,21 @@ func UserRouter(logger zerolog.Logger, presenter interfaces.Presenters, userServ
 	return r
 }
 
+// Create
+// @ID create
+// @tags user
+// @Summary Created new user
+// @Description Created new user
+// @Accept json
+// @Produce json
+// @Param access_token header string true "access token"
+// @Param refresh_token header string true "refresh token"
+// @Param user body requests.CreateUser true "request body"
+// @Success 200 {string} string "ok"
+// @Failure 400 {object} response.Error "bad request"
+// @Failure 403 {object} response.Error "forbidden"
+// @Failure 500 {object} response.Error "internal error"
+// @Router /create [post]
 func (handlers *userHandlers) create(w http.ResponseWriter, r *http.Request) {
 	ctx, span := utils.StartSpan(r.Context())
 	defer span.End()
@@ -67,6 +82,20 @@ func (handlers *userHandlers) create(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetUserInfo
+// @ID GetUserInfo
+// @tags user
+// @Summary Get user info
+// @Description returning user info
+// @Accept json
+// @Produce json
+// @Param access_token header string true "access token"
+// @Param refresh_token header string true "refresh token"
+// @Success 200 {object} response.User "ok"
+// @Failure 400 {object} response.Error "bad request"
+// @Failure 403 {object} response.Error "forbidden"
+// @Failure 500 {object} response.Error "internal error"
+// @Router /i [post]
 func (handlers *userHandlers) get(w http.ResponseWriter, r *http.Request) {
 	ctx, span := utils.StartSpan(r.Context())
 	defer span.End()
