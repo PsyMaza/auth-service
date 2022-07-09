@@ -102,9 +102,6 @@ func main() {
 		r.Use(middlewares.Recover(logger))
 		r.Use(cors.Default().Handler)
 
-		r.Get("/swagger/*", httpSwagger.Handler(
-			httpSwagger.URL(fmt.Sprintf("%s/swagger/doc.json"))))
-
 		r.Mount("/auth", handlers.AuthRouter(logger, presenters, authService))
 
 		r.With(middlewares.Validate(presenters, authService)).
@@ -181,7 +178,9 @@ func main() {
 	swagger := handlers.SwaggerRouter("http://localhost:1323")
 
 	go func() {
-		http.ListenAndServe(":1323", swagger)
+		if err := http.ListenAndServe(":1323", swagger); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Fatal().Err(err).Msg("debug server was terminated with an error")
+		}
 	}()
 
 	log.Info().

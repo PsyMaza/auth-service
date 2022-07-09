@@ -86,6 +86,9 @@ func (suite *TestContainersSuite) SetupSuite() {
 }
 
 func (s *TestContainersSuite) TearDownSuite() {
-	s.mongoContainer.Terminate(context.Background())
+	err := s.mongoContainer.Terminate(context.Background())
+	if err != nil {
+		s.T().Log("Suite stop is done")
+	}
 	s.T().Log("Suite stop is done")
 }

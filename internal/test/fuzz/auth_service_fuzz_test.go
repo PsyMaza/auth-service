@@ -99,7 +99,12 @@ func FuzzTestCreateUser(f *testing.F) {
 	if err != nil {
 		f.Error(err)
 	}
-	defer db.Container.Terminate(ctx)
+	defer func() {
+		err := db.Container.Terminate(ctx)
+		if err != nil {
+			f.Log(err)
+		}
+	}()
 
 	userR := repositories.NewDatabaseRepo(db.mongo.Database(dbName))
 	userS := user_service.New(userR)
