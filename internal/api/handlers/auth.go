@@ -14,12 +14,12 @@ import (
 )
 
 type authHandlers struct {
-	logger      zerolog.Logger
+	logger      *zerolog.Logger
 	presenters  interfaces.Presenters
 	authService interfaces.AuthService
 }
 
-func newAuthHandlers(logger zerolog.Logger, presenter interfaces.Presenters, authService interfaces.AuthService) *authHandlers {
+func newAuthHandlers(logger *zerolog.Logger, presenter interfaces.Presenters, authService interfaces.AuthService) *authHandlers {
 	return &authHandlers{
 		logger:      logger,
 		presenters:  presenter,
@@ -27,10 +27,11 @@ func newAuthHandlers(logger zerolog.Logger, presenter interfaces.Presenters, aut
 	}
 }
 
-func AuthRouter(logger zerolog.Logger, presenter interfaces.Presenters, authService interfaces.AuthService) http.Handler {
+func AuthRouter(logger *zerolog.Logger, presenter interfaces.Presenters, authService interfaces.AuthService) http.Handler {
 	handlers := newAuthHandlers(logger, presenter, authService)
 
 	r := chi.NewRouter()
+	r.Get("/all", handlers.all)
 	r.Post("/login", handlers.login)
 	r.Post("/logout", handlers.logout)
 	r.Post("/validate", handlers.validate)
@@ -187,4 +188,8 @@ func (handlers *authHandlers) validate(w http.ResponseWriter, r *http.Request) {
 		handlers.presenters.Error(w, r, models.ErrorForbidden(err))
 		return
 	}
+}
+
+func (handlers *authHandlers) all(w http.ResponseWriter, r *http.Request) {
+
 }

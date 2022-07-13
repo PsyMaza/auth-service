@@ -13,12 +13,12 @@ import (
 )
 
 type userHandlers struct {
-	logger      zerolog.Logger
+	logger      *zerolog.Logger
 	presenters  interfaces.Presenters
 	userService interfaces.UserService
 }
 
-func newUserHandlers(logger zerolog.Logger, presenter interfaces.Presenters, userService interfaces.UserService) *userHandlers {
+func newUserHandlers(logger *zerolog.Logger, presenter interfaces.Presenters, userService interfaces.UserService) *userHandlers {
 	return &userHandlers{
 		logger:      logger,
 		presenters:  presenter,
@@ -26,7 +26,7 @@ func newUserHandlers(logger zerolog.Logger, presenter interfaces.Presenters, use
 	}
 }
 
-func UserRouter(logger zerolog.Logger, presenter interfaces.Presenters, userService interfaces.UserService) http.Handler {
+func UserRouter(logger *zerolog.Logger, presenter interfaces.Presenters, userService interfaces.UserService) http.Handler {
 	handlers := newUserHandlers(logger, presenter, userService)
 
 	r := chi.NewRouter()

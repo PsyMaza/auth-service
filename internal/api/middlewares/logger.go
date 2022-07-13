@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func Logger(logger zerolog.Logger) func(http.Handler) http.Handler {
+func Logger(logger *zerolog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(rw http.ResponseWriter, r *http.Request) {
 			ww := middleware.NewWrapResponseWriter(rw, r.ProtoMajor)

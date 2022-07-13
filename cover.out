@@ -6,13 +6,6 @@ gitlab.com/g6834/team17/auth-service/internal/utils/password.go:13.2,13.21 1 0
 gitlab.com/g6834/team17/auth-service/internal/utils/password.go:10.16,12.3 1 0
 gitlab.com/g6834/team17/auth-service/internal/utils/password.go:16.47,18.2 1 0
 gitlab.com/g6834/team17/auth-service/internal/utils/tracer.go:12.67,16.2 3 0
-gitlab.com/g6834/team17/auth-service/internal/services/user_service/service.go:14.49,18.2 1 9
-gitlab.com/g6834/team17/auth-service/internal/services/user_service/service.go:20.76,25.16 4 3
-gitlab.com/g6834/team17/auth-service/internal/services/user_service/service.go:28.2,28.19 1 2
-gitlab.com/g6834/team17/auth-service/internal/services/user_service/service.go:25.16,27.3 1 1
-gitlab.com/g6834/team17/auth-service/internal/services/user_service/service.go:31.83,38.2 5 2
-gitlab.com/g6834/team17/auth-service/internal/services/user_service/service.go:40.83,46.2 4 2
-gitlab.com/g6834/team17/auth-service/internal/services/user_service/service.go:48.91,54.2 4 2
 gitlab.com/g6834/team17/auth-service/internal/services/auth_service/service.go:39.75,41.2 1 7
 gitlab.com/g6834/team17/auth-service/internal/services/auth_service/service.go:43.105,48.16 4 6
 gitlab.com/g6834/team17/auth-service/internal/services/auth_service/service.go:53.2,54.16 2 5
@@ -54,3 +47,10 @@ gitlab.com/g6834/team17/auth-service/internal/services/auth_service/service.go:1
 gitlab.com/g6834/team17/auth-service/internal/services/auth_service/service.go:165.3,165.47 1 1
 gitlab.com/g6834/team17/auth-service/internal/services/auth_service/service.go:162.58,164.4 1 0
 gitlab.com/g6834/team17/auth-service/internal/services/auth_service/service.go:167.32,169.3 1 1
+gitlab.com/g6834/team17/auth-service/internal/services/user_service/service.go:14.49,18.2 1 9
+gitlab.com/g6834/team17/auth-service/internal/services/user_service/service.go:20.76,25.16 4 3
+gitlab.com/g6834/team17/auth-service/internal/services/user_service/service.go:28.2,28.19 1 2
+gitlab.com/g6834/team17/auth-service/internal/services/user_service/service.go:25.16,27.3 1 1
+gitlab.com/g6834/team17/auth-service/internal/services/user_service/service.go:31.83,38.2 5 2
+gitlab.com/g6834/team17/auth-service/internal/services/user_service/service.go:40.83,46.2 4 2
+gitlab.com/g6834/team17/auth-service/internal/services/user_service/service.go:48.91,54.2 4 2

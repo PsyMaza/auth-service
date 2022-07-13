@@ -14,18 +14,18 @@ import (
 )
 
 type profilerHandlers struct {
-	logger     zerolog.Logger
+	logger     *zerolog.Logger
 	presenters interfaces.Presenters
 }
 
-func newProfilerHandlers(logger zerolog.Logger, presenters interfaces.Presenters) *profilerHandlers {
+func newProfilerHandlers(logger *zerolog.Logger, presenters interfaces.Presenters) *profilerHandlers {
 	return &profilerHandlers{
 		logger:     logger,
 		presenters: presenters,
 	}
 }
 
-func ProfilerRouter(logger zerolog.Logger, presenters interfaces.Presenters) http.Handler {
+func ProfilerRouter(logger *zerolog.Logger, presenters interfaces.Presenters) http.Handler {
 	r := chi.NewRouter()
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {

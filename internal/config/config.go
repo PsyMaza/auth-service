@@ -10,12 +10,12 @@ import (
 var cfg *Config
 
 // New returns services config
-func New() Config {
+func New() *Config {
 	if cfg != nil {
-		return *cfg
+		return cfg
 	}
 
-	return Config{}
+	return &Config{}
 }
 
 // Database - contains all parameters databases connection.
@@ -29,11 +29,12 @@ type Database struct {
 	Timeout    int    `yaml:"timeout"`
 }
 
-// Rest - contains parameter rest json connection.
-type Rest struct {
+// Http - contains parameter rest json connection.
+type Http struct {
 	Host            string `yaml:"host"`
 	Port            int    `yaml:"port"`
 	DebugPort       int    `yaml:"debugPort"`
+	SwaggerPort     int    `yaml:"swaggerPort"`
 	ShutdownTimeout int    `yaml:"shutdownTimeout"`
 	ReadTimeout     int    `yaml:"readTimeout"`
 	WriteTimeout    int    `yaml:"writeTimeout"`
@@ -81,7 +82,7 @@ type Grpc struct {
 type Config struct {
 	App      App      `yaml:"app"`
 	Jwt      Jwt      `yaml:"jwt"`
-	Rest     Rest     `yaml:"rest"`
+	Http     Http     `yaml:"http"`
 	Database Database `yaml:"database"`
 	Metrics  Metrics  `yaml:"metrics"`
 	Jaeger   Jaeger   `yaml:"jaeger"`
