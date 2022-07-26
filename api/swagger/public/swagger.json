@@ -1,0 +1,427 @@
+{
+    "schemes": [
+        "http"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "Signed token protects our admin endpoints",
+        "title": "Auth-service",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "version": "1.0.0"
+    },
+    "host": "localhost:3000",
+    "basePath": "/v1/auth",
+    "paths": {
+        "/create": {
+            "post": {
+                "description": "Created new user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Created new user",
+                "operationId": "create",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "refresh token",
+                        "name": "refresh_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "request body",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.CreateUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/i": {
+            "post": {
+                "description": "returning user info",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get user info",
+                "operationId": "GetUserInfo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "refresh token",
+                        "name": "refresh_token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "$ref": "#/definitions/response.User"
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "description": "Authenticate and authorized user. Return access and refresh tokens in cookies.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Authorized user",
+                "operationId": "login",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "redirect uri",
+                        "name": "redirect_uri",
+                        "in": "query"
+                    },
+                    {
+                        "description": "request body",
+                        "name": "login",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.Login"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "$ref": "#/definitions/response.TokenPair"
+                        },
+                        "headers": {
+                            "access_token": {
+                                "type": "string",
+                                "description": "token for access services"
+                            },
+                            "refresh_token": {
+                                "type": "string",
+                                "description": "token for refresh access_token"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "404 page not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/logout": {
+            "post": {
+                "security": [
+                    {
+                        "Auth": []
+                    }
+                ],
+                "description": "Clears access and refresh tokens",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Clears tokens",
+                "operationId": "logout",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "redirect uri",
+                        "name": "redirect_uri",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "refresh token",
+                        "name": "refresh_token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok"
+                    },
+                    "302": {
+                        "description": "redirect"
+                    },
+                    "500": {
+                        "description": "internal error"
+                    }
+                }
+            }
+        },
+        "/validate": {
+            "post": {
+                "security": [
+                    {
+                        "Auth": []
+                    }
+                ],
+                "description": "Validate tokens and refresh tokens if refresh token is valid",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Validate tokens",
+                "operationId": "Validate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "access token",
+                        "name": "access_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "refresh token",
+                        "name": "refresh_token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "$ref": "#/definitions/response.TokenPair"
+                        }
+                    },
+                    "403": {
+                        "description": "forbidden",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "requests.CreateUser": {
+            "type": "object",
+            "required": [
+                "email",
+                "first_name",
+                "last_name",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "qwerty@domen.com"
+                },
+                "first_name": {
+                    "type": "string",
+                    "example": "qwerty"
+                },
+                "last_name": {
+                    "type": "string",
+                    "example": "qwerty"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "qwerty"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "user123"
+                }
+            }
+        },
+        "requests.Login": {
+            "type": "object",
+            "required": [
+                "login",
+                "password"
+            ],
+            "properties": {
+                "login": {
+                    "description": "Username for authentication",
+                    "type": "string",
+                    "example": "test123"
+                },
+                "password": {
+                    "description": "Password for authentication",
+                    "type": "string",
+                    "example": "qwerty"
+                }
+            }
+        },
+        "response.Error": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.TokenPair": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "description": "AccessToken at",
+                    "type": "string"
+                },
+                "refreshToken": {
+                    "description": "RefreshToken rt",
+                    "type": "string"
+                }
+            }
+        },
+        "response.User": {
+            "type": "object",
+            "properties": {
+                "creationDate": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "Auth": {
+            "type": "basic"
+        }
+    }
+}

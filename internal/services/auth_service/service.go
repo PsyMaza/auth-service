@@ -24,7 +24,7 @@ type authService struct {
 	repo        interfaces.UserRepo
 }
 
-var NotFoundUserErr = errors.New("no user found with this username and password")
+var WrongUnameOrPassErr = errors.New("no user found with this username and password")
 
 const (
 	authorized = "authorized"
@@ -47,12 +47,13 @@ func (as *authService) Authorize(ctx context.Context, uname, pass string) (*mode
 	user, err := as.repo.GetByName(ctx, uname)
 	if err != nil {
 		log.Println(err)
-		return nil, NotFoundUserErr
+		return nil, WrongUnameOrPassErr
 	}
 
 	err = utils.CheckPassword([]byte(pass), []byte(user.Password))
 	if err != nil {
-		return nil, err
+		log.Println(err)
+		return nil, WrongUnameOrPassErr
 	}
 
 	token, err := createToken(user, as.jwtSettings)

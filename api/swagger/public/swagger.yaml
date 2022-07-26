@@ -1,0 +1,288 @@
+basePath: /v1/auth
+definitions:
+  requests.CreateUser:
+    properties:
+      email:
+        example: qwerty@domen.com
+        type: string
+      first_name:
+        example: qwerty
+        type: string
+      last_name:
+        example: qwerty
+        type: string
+      password:
+        example: qwerty
+        type: string
+      username:
+        example: user123
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    - username
+    type: object
+  requests.Login:
+    properties:
+      login:
+        description: Username for authentication
+        example: test123
+        type: string
+      password:
+        description: Password for authentication
+        example: qwerty
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  response.Error:
+    properties:
+      error:
+        type: string
+    type: object
+  response.TokenPair:
+    properties:
+      accessToken:
+        description: AccessToken at
+        type: string
+      refreshToken:
+        description: RefreshToken rt
+        type: string
+    type: object
+  response.User:
+    properties:
+      creationDate:
+        type: integer
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Signed token protects our admin endpoints
+  title: Auth-service
+  version: 1.0.0
+paths:
+  /create:
+    post:
+      consumes:
+      - application/json
+      description: Created new user
+      operationId: create
+      parameters:
+      - description: access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: refresh token
+        in: header
+        name: refresh_token
+        required: true
+        type: string
+      - description: request body
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CreateUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "403":
+          description: forbidden
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Created new user
+      tags:
+      - user
+  /i:
+    post:
+      consumes:
+      - application/json
+      description: returning user info
+      operationId: GetUserInfo
+      parameters:
+      - description: access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: refresh token
+        in: header
+        name: refresh_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            $ref: '#/definitions/response.User'
+        "400":
+          description: bad request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "403":
+          description: forbidden
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Get user info
+      tags:
+      - user
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate and authorized user. Return access and refresh tokens
+        in cookies.
+      operationId: login
+      parameters:
+      - description: redirect uri
+        in: query
+        name: redirect_uri
+        type: string
+      - description: request body
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/requests.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          headers:
+            access_token:
+              description: token for access services
+              type: string
+            refresh_token:
+              description: token for refresh access_token
+              type: string
+          schema:
+            $ref: '#/definitions/response.TokenPair'
+        "400":
+          description: bad request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "403":
+          description: forbidden
+          schema:
+            $ref: '#/definitions/response.Error'
+        "404":
+          description: 404 page not found
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Authorized user
+      tags:
+      - auth
+  /logout:
+    post:
+      description: Clears access and refresh tokens
+      operationId: logout
+      parameters:
+      - description: redirect uri
+        in: query
+        name: redirect_uri
+        type: string
+      - description: access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: refresh token
+        in: header
+        name: refresh_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+        "302":
+          description: redirect
+        "500":
+          description: internal error
+      security:
+      - Auth: []
+      summary: Clears tokens
+      tags:
+      - auth
+  /validate:
+    post:
+      description: Validate tokens and refresh tokens if refresh token is valid
+      operationId: Validate
+      parameters:
+      - description: access token
+        in: header
+        name: access_token
+        required: true
+        type: string
+      - description: refresh token
+        in: header
+        name: refresh_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            $ref: '#/definitions/response.TokenPair'
+        "403":
+          description: forbidden
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      security:
+      - Auth: []
+      summary: Validate tokens
+      tags:
+      - auth
+schemes:
+- http
+securityDefinitions:
+  Auth:
+    type: basic
+swagger: "2.0"

@@ -16,10 +16,11 @@ grpc:
     timeout: 15 # Seconds
     maxConnectionAge: 5 # Minutes
 
-rest:
+http:
     host: 0.0.0.0
     port: 3000
     debugPort: 9000
+    swaggerPort: 1234
     ShutdownTimeout: 5 # Seconds
     readTimeout: 15 # Seconds
     writeTimeout: 15 # Seconds

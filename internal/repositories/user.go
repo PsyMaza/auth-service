@@ -53,6 +53,9 @@ func (r *DatabaseRepo) Get(ctx context.Context, id string) (*models.User, error)
 	defer span.End()
 
 	docId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
 	query := r.db.Collection(DB_COLLECTION).FindOne(ctx, bson.M{"_id": docId})
 
 	var user models.User
@@ -100,7 +103,6 @@ func (r *DatabaseRepo) Update(ctx context.Context, user *models.User) error {
 
 	dataReq := bson.M{
 		"$set": bson.M{
-			"username":   user.Username,
 			"password":   user.Password,
 			"email":      user.Email,
 			"first_name": user.FirstName,
@@ -108,7 +110,7 @@ func (r *DatabaseRepo) Update(ctx context.Context, user *models.User) error {
 		},
 	}
 
-	res := r.db.Collection(DB_COLLECTION).FindOneAndUpdate(ctx, bson.M{"_id": user.ID}, dataReq)
+	res := r.db.Collection(DB_COLLECTION).FindOneAndUpdate(ctx, bson.M{"username": user.Username}, dataReq)
 
 	return res.Err()
 }

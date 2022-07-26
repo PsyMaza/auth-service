@@ -6,9 +6,9 @@ import (
 )
 
 type presenters struct {
-	logger zerolog.Logger
+	logger *zerolog.Logger
 }
 
-func NewPresenters(logger zerolog.Logger) interfaces.Presenters {
+func NewPresenters(logger *zerolog.Logger) interfaces.Presenters {
 	return &presenters{logger: logger}
 }

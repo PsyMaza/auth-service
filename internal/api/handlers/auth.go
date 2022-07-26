@@ -14,12 +14,12 @@ import (
 )
 
 type authHandlers struct {
-	logger      zerolog.Logger
+	logger      *zerolog.Logger
 	presenters  interfaces.Presenters
 	authService interfaces.AuthService
 }
 
-func newAuthHandlers(logger zerolog.Logger, presenter interfaces.Presenters, authService interfaces.AuthService) *authHandlers {
+func newAuthHandlers(logger *zerolog.Logger, presenter interfaces.Presenters, authService interfaces.AuthService) *authHandlers {
 	return &authHandlers{
 		logger:      logger,
 		presenters:  presenter,
@@ -27,10 +27,11 @@ func newAuthHandlers(logger zerolog.Logger, presenter interfaces.Presenters, aut
 	}
 }
 
-func AuthRouter(logger zerolog.Logger, presenter interfaces.Presenters, authService interfaces.AuthService) http.Handler {
+func AuthRouter(logger *zerolog.Logger, presenter interfaces.Presenters, authService interfaces.AuthService) http.Handler {
 	handlers := newAuthHandlers(logger, presenter, authService)
 
 	r := chi.NewRouter()
+	r.Get("/all", handlers.all)
 	r.Post("/login", handlers.login)
 	r.Post("/logout", handlers.logout)
 	r.Post("/validate", handlers.validate)
@@ -38,6 +39,23 @@ func AuthRouter(logger zerolog.Logger, presenter interfaces.Presenters, authServ
 	return r
 }
 
+// Login
+// @ID login
+// @tags auth
+// @Summary Authorized user
+// @Description Authenticate and authorized user. Return access and refresh tokens in cookies.
+// @Accept json
+// @Produce json
+// @Param redirect_uri query string false "redirect uri"
+// @Param login body requests.Login true "request body"
+// @Success 200 {object} response.TokenPair true "ok"
+// @Header 200 {string} access_token	"token for access services"
+// @Header 200 {string} refresh_token	"token for refresh access_token"
+// @Failure 400 {object} response.Error "bad request"
+// @Failure 404 {string} string "404 page not found"
+// @Failure 403 {object} response.Error "forbidden"
+// @Failure 500 {object} response.Error "internal error"
+// @Router /login [post]
 func (handlers *authHandlers) login(w http.ResponseWriter, r *http.Request) {
 	ctx, span := utils.StartSpan(r.Context())
 	defer span.End()
@@ -88,6 +106,20 @@ func (handlers *authHandlers) login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Logout
+// @ID logout
+// @tags auth
+// @Summary Clears tokens
+// @Description Clears access and refresh tokens
+// @Security Auth
+// @Produce json
+// @Param redirect_uri query string false "redirect uri"
+// @Param access_token header string true "access token"
+// @Param refresh_token header string true "refresh token"
+// @Success 200  "ok"
+// @Failure 302  "redirect"
+// @Failure 500  "internal error"
+// @Router /logout [post]
 func (handlers *authHandlers) logout(w http.ResponseWriter, r *http.Request) {
 	_, span := utils.StartSpan(r.Context())
 	defer span.End()
@@ -119,6 +151,19 @@ func (handlers *authHandlers) logout(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Validate
+// @ID Validate
+// @tags auth
+// @Summary Validate tokens
+// @Description Validate tokens and refresh tokens if refresh token is valid
+// @Security Auth
+// @Produce json
+// @Param access_token header string true "access token"
+// @Param refresh_token header string true "refresh token"
+// @Success 200 {object} response.TokenPair true "ok"
+// @Failure 403 {string} string "forbidden"
+// @Failure 500 {string} string "internal error"
+// @Router /validate [post]
 func (handlers *authHandlers) validate(w http.ResponseWriter, r *http.Request) {
 	ctx, span := utils.StartSpan(r.Context())
 	defer span.End()
@@ -143,4 +188,8 @@ func (handlers *authHandlers) validate(w http.ResponseWriter, r *http.Request) {
 		handlers.presenters.Error(w, r, models.ErrorForbidden(err))
 		return
 	}
+}
+
+func (handlers *authHandlers) all(w http.ResponseWriter, r *http.Request) {
+
 }
